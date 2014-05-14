@@ -2,7 +2,8 @@ package dotbot
 
 type Mask uint64
 
-const AllDots = (Mask(1) << (BoardSize * BoardSize)) - 1
+const NumDots = BoardSize * BoardSize
+const AllDots = (Mask(1) << NumDots) - 1
 
 func InBounds(row, col int) bool {
 	return 0 <= row && row < BoardSize && 0 <= col && col < BoardSize
@@ -15,6 +16,10 @@ func index(row, col int) uint {
 	return uint(BoardSize)*uint(col) + uint(row)
 }
 
+func unIndex(index uint) (row, col int) {
+	return int(index % uint(BoardSize)), int(index / uint(BoardSize))
+}
+
 func (mask Mask) Matches(pattern Mask) bool {
 	return (mask & pattern) == pattern
 }
@@ -24,7 +29,7 @@ func DotMask(row, col int) Mask {
 }
 
 func (mask Mask) Contains(row, col int) bool {
-	return mask.Matches(DotMask(row, col))
+	return InBounds(row, col) && mask.Matches(DotMask(row, col))
 }
 
 func (mask *Mask) Add(row, col int) {
@@ -58,7 +63,7 @@ func (mask *Mask) buildPartition(row, col int) (partition Mask) {
 	stack := new(stack)
 
 	visit := func(row, col int) {
-		if InBounds(row, col) && mask.Contains(row, col) {
+		if mask.Contains(row, col) {
 			mask.Remove(row, col)
 			stack.push(row, col)
 		}
@@ -90,23 +95,20 @@ func (mask Mask) String() string {
 	return board.String()
 }
 
-// Internal data structures for buildPartition().
-
-type point struct{ row, col int }
+// Internal data structure for buildPartition().
 
 type stack struct {
-	data [BoardSize * BoardSize]point
+	data [NumDots]uint
 	size int
 }
 
 func (s *stack) push(row, col int) {
-	s.data[s.size] = point{row, col}
+	s.data[s.size] = index(row, col)
 	s.size++
 }
 
 func (s *stack) pop() (row, col int) {
 	s.size--
-	row = s.data[s.size].row
-	col = s.data[s.size].col
-	return
+	r, c := unIndex(s.data[s.size])
+	return int(r), int(c)
 }

@@ -30,7 +30,7 @@ func TestMatches(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		original := RandMask()
 		mask := original
-		n := rand.Intn(BoardSize * BoardSize)
+		n := rand.Intn(NumDots)
 		for j := 0; j < n; j++ {
 			row := rand.Intn(BoardSize)
 			col := rand.Intn(BoardSize)
@@ -60,12 +60,11 @@ func TestAddRemove(t *testing.T) {
 
 func TestCount(t *testing.T) {
 	for i := 0; i < 1000; i++ {
-		points := rand.Perm(BoardSize * BoardSize)
-		count := rand.Intn(BoardSize * BoardSize)
+		points := rand.Perm(NumDots)
+		count := rand.Intn(NumDots)
 		mask := Mask(0)
 		for j := 0; j < count; j++ {
-			row := points[j] / 6
-			col := points[j] % 6
+			row, col := unIndex(uint(points[j]))
 			mask.Add(row, col)
 		}
 		if mask.Count() != count {
