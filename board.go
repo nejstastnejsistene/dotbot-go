@@ -20,14 +20,43 @@ const (
 	Purple
 )
 
+var Colors = []Color{
+	Red,
+	Yellow,
+	Green,
+	Blue,
+	Purple,
+}
+
+func (c Color) String() string {
+	switch c {
+	case Empty:
+		return "Empty"
+	case NotEmpty:
+		return "NotEmpty"
+	case Red:
+		return "Red"
+	case Yellow:
+		return "Yellow"
+	case Green:
+		return "Green"
+	case Blue:
+		return "Blue"
+	case Purple:
+		return "Purple"
+	default:
+		panic(fmt.Sprintf("Unknown color: %d", c))
+	}
+}
+
 func RandomBoard() Board {
 	var board Board
 	board.FillEmptyWithRandom()
 	return board
 }
 
-func randColor() Color {
-	return Color(rand.Intn(int(Purple-Red+1))) + Red
+func RandomColor() Color {
+	return Colors[rand.Intn(len(Colors))]
 }
 
 func (board *Board) FillEmptyWithRandom() {
@@ -38,9 +67,9 @@ func (board *Board) FillEmptyWithRandomExcluding(exclude Color) {
 	for row := 0; row < BoardSize; row++ {
 		for col := 0; col < BoardSize; col++ {
 			if board.Color(row, col) == Empty {
-				color := randColor()
+				color := RandomColor()
 				for color == exclude {
-					color = randColor()
+					color = RandomColor()
 				}
 				board.SetColor(row, col, color)
 			}
@@ -74,6 +103,15 @@ func (board Board) ColorMask(color Color) Mask {
 		}
 	}
 	return mask
+}
+
+func (board Board) Copy() (copy Board) {
+	for row := 0; row < BoardSize; row++ {
+		for col := 0; col < BoardSize; col++ {
+			copy.SetColor(row, col, board.Color(row, col))
+		}
+	}
+	return
 }
 
 const dotFmt = " \x1b[%dm\u25cf\x1b[0m"
