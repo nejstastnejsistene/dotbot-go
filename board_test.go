@@ -5,11 +5,9 @@ import (
 	"testing"
 )
 
-const numTrials = 1000
-
 func TestRandomColor(t *testing.T) {
 	seen := make(map[Color]bool)
-	for i := 0; i < numTrials; i++ {
+	for i := 0; i < 1000; i++ {
 		seen[RandomColor()] = true
 	}
 	for _, color := range Colors {
@@ -20,7 +18,7 @@ func TestRandomColor(t *testing.T) {
 }
 
 func TestFillEmptyWithRandomExcluding(t *testing.T) {
-	for i := 0; i < numTrials; i++ {
+	for i := 0; i < 1000; i++ {
 		for _, color := range Colors {
 			board := new(Board)
 			board.FillEmptyWithRandomExcluding(color)
@@ -40,7 +38,7 @@ func TestFillEmptyWithRandomExcluding(t *testing.T) {
 
 func TestSetColor(t *testing.T) {
 	board := new(Board)
-	for i := 0; i < numTrials; i++ {
+	for i := 0; i < 1000; i++ {
 		row := rand.Intn(BoardSize)
 		col := rand.Intn(BoardSize)
 		color := RandomColor()
@@ -52,7 +50,7 @@ func TestSetColor(t *testing.T) {
 }
 
 func TestShrink(t *testing.T) {
-	for i := 0; i < numTrials; i++ {
+	for i := 0; i < 1000; i++ {
 		board := RandomBoard()
 		copy := board.Copy()
 
@@ -72,7 +70,7 @@ func TestShrink(t *testing.T) {
 }
 
 func TestColorMask(t *testing.T) {
-	for i := 0; i < numTrials; i++ {
+	for i := 0; i < 1000; i++ {
 		board := RandomBoard()
 		for _, color := range Colors {
 			mask := board.ColorMask(color)
@@ -90,7 +88,7 @@ func TestColorMask(t *testing.T) {
 }
 
 func TestCopy(t *testing.T) {
-	for i := 0; i < numTrials; i++ {
+	for i := 0; i < 1000; i++ {
 		board := RandomBoard()
 		copy := board.Copy()
 		for row := 0; row < BoardSize; row++ {

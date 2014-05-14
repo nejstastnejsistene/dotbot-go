@@ -2,8 +2,10 @@ package dotbot
 
 type Mask uint64
 
+const AllDots = (Mask(1) << (BoardSize * BoardSize)) - 1
+
 func InBounds(row, col int) bool {
-	return 0 <= row || row < BoardSize || 0 <= col || col < BoardSize
+	return 0 <= row && row < BoardSize && 0 <= col && col < BoardSize
 }
 
 func index(row, col int) uint {
@@ -41,7 +43,7 @@ func (mask Mask) Count() (count int) {
 	return
 }
 
-func (mask Mask) Partitions(partitions chan Mask) {
+func (mask Mask) Partition(partitions chan Mask) {
 	for row := 0; row < BoardSize; row++ {
 		for col := 0; col < BoardSize; col++ {
 			if mask.Contains(row, col) {
@@ -49,6 +51,7 @@ func (mask Mask) Partitions(partitions chan Mask) {
 			}
 		}
 	}
+	close(partitions)
 }
 
 func (mask *Mask) buildPartition(row, col int) (partition Mask) {
