@@ -1,4 +1,4 @@
-package dotbot
+package solver
 
 import (
 	"math/rand"

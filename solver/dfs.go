@@ -1,4 +1,4 @@
-package dotbot
+package solver
 
 func (mask Mask) DFS(paths chan Mask) {
 	seen := make(map[Mask]bool)

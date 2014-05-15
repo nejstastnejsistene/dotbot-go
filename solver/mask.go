@@ -1,4 +1,4 @@
-package dotbot
+package solver
 
 type Mask uint64
 

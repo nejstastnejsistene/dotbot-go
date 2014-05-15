@@ -1,4 +1,4 @@
-package dotbot
+package solver
 
 // A database of all possible non-square cycles. The slice of
 // cycles at db[rows][cols] is the list of all cycles of size
