@@ -48,6 +48,23 @@ func (mask Mask) Count() (count int) {
 	return
 }
 
+func (mask Mask) CountNeighbors(row, col int) int {
+	count := 0
+	if mask.Contains(row-1, col) {
+		count++
+	}
+	if mask.Contains(row+1, col) {
+		count++
+	}
+	if mask.Contains(row, col-1) {
+		count++
+	}
+	if mask.Contains(row, col+1) {
+		count++
+	}
+	return count
+}
+
 func (mask Mask) Partition(partitions chan Mask) {
 	for row := 0; row < BoardSize; row++ {
 		for col := 0; col < BoardSize; col++ {

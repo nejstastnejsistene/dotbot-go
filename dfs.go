@@ -4,7 +4,7 @@ func (mask Mask) DFS(paths chan Mask) {
 	filter := new(uniqFilter)
 	for row := 0; row < BoardSize; row++ {
 		for col := 0; col < BoardSize; col++ {
-			if mask.Contains(row, col) && mask.countNeighbors(row, col) == 1 {
+			if mask.Contains(row, col) && mask.CountNeighbors(row, col) == 1 {
 				mask.uniqPaths(paths, row, col, filter)
 			}
 		}
@@ -12,26 +12,12 @@ func (mask Mask) DFS(paths chan Mask) {
 	close(paths)
 }
 
-func (mask Mask) countNeighbors(row, col int) int {
-	count := 0
-	if mask.Contains(row-1, col) {
-		count++
-	}
-	if mask.Contains(row+1, col) {
-		count++
-	}
-	if mask.Contains(row, col-1) {
-		count++
-	}
-	if mask.Contains(row, col+1) {
-		count++
-	}
-	return count
-}
-
 func (mask Mask) uniqPaths(paths chan Mask, row, col int, filter *uniqFilter) {
 	dfsResults := make(chan dfsResult)
-	go mask.dfsHelper(dfsResults, row, col, Mask(0))
+	go func() {
+		mask.dfsHelper(dfsResults, row, col, Mask(0))
+		close(dfsResults)
+	}()
 
 	for result := range dfsResults {
 		if filter.check(row, col, result.endRow, result.endCol) {
@@ -56,10 +42,6 @@ func (mask Mask) dfsHelper(results chan dfsResult, row, col int, path Mask) {
 	visit(row+1, col)
 	visit(row, col-1)
 	visit(row, col+1)
-
-	if path.Count() == 1 {
-		close(results)
-	}
 }
 
 // Internal data structures.
