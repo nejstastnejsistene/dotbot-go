@@ -6,9 +6,9 @@ package solver
 // this is that any cycle that has a square in it doesn't add
 // anything to that same cycle with the square removed. E.g.
 //
-// X X X X											 X X X
+// X X X X                                           X X X
 // X   X X will have the same affect on the board as X   X
-// X X X X 											 X X X
+// X X X X                                           X X X
 //
 // This is because any cycle will remove all dots of that color,
 // so the only real differentiating factor between cycles is how
@@ -75,10 +75,10 @@ func (mask Mask) Cycles(cycles chan Mask, colorMask Mask) {
 			// In that case, there will be one less because a dot
 			// is server as two corners. Example:
 			//
-			// X X X		This cycle is 5x5, so the perimeter
-			// X   X		is 16. That center dot with four
-			// X X X X X	neighbors rather than the typical two
-			//     X   X	brings the actual number of dots to 15.
+			// X X X        This cycle is 5x5, so the perimeter
+			// X   X        is 16. That center dot with four
+			// X X X X X    neighbors rather than the typical two
+			//     X   X    brings the actual number of dots to 15.
 			//     X X X
 			if numDots >= perimeter(rows, cols)-1 {
 				for _, cycle := range db[rows][cols] {
@@ -208,11 +208,11 @@ func computeCyclesOfSize(cycles chan Mask, rows, cols int) {
 	// represented by the top and bottom dot for each column, or in
 	// other words, the start and end row for each column. For example,
 	//
-	// X X X X X X		X X X X X X
-	//            		X		  X
-	// X X        	=>	X X X     X
-	//     X      			X X   X
-	//		 X X X			  X X X
+	// X X X X X X      X X X X X X
+	//                  X         X
+	// X X          =>  X X X     X
+	//     X                X X   X
+	//       X X X            X X X
 	//
 	// This algorithm recursively selects these start and end points
 	// and fills in the appropriate dots. This relatively small set
@@ -252,11 +252,11 @@ func computeCyclesOfSize(cycles chan Mask, rows, cols int) {
 				//
 				// Examples:
 				//
-				// X		X		  X		  X
-				//   X		X X		X 		X X
-				//		=>				=>
-				// X		X X		  X		X X
-				//   X		  X		X		X
+				// X        X         X       X
+				//   X      X X     X       X X
+				//      =>              =>
+				// X        X X       X     X X
+				//   X        X     X       X
 				//
 				if col > 0 {
 					for row := start + 1; row <= prevStart; row++ {
