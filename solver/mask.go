@@ -69,35 +69,64 @@ func (mask Mask) Partition(partitions chan Mask) {
 	for row := 0; row < BoardSize; row++ {
 		for col := 0; col < BoardSize; col++ {
 			if mask.Contains(row, col) {
-				partitions <- mask.buildPartition(row, col)
+				partitions <- mask.buildPartition(Mask(0), row, col)
 			}
 		}
 	}
 	close(partitions)
 }
 
-func (mask *Mask) buildPartition(row, col int) (partition Mask) {
-	stack := new(stack)
+func (mask *Mask) buildPartition(p Mask, row, col int) Mask {
+
+	visit := func(p Mask, row, col int) Mask {
+		if mask.Contains(row, col) {
+			p = mask.buildPartition(p, row, col)
+		}
+		return p
+	}
+
+	mask.Remove(row, col)
+	p.Add(row, col)
+
+	p = visit(p, row-1, col)
+	p = visit(p, row+1, col)
+	p = visit(p, row, col-1)
+	p = visit(p, row, col+1)
+	return p
+}
+
+func (mask Mask) DFS(paths chan Mask) {
+	seen := make(map[Mask]bool)
+	for row := 0; row < BoardSize; row++ {
+		for col := 0; col < BoardSize; col++ {
+			if mask.Contains(row, col) && mask.CountNeighbors(row, col) == 1 {
+				mask.buildPaths(paths, seen, row, col, Mask(0))
+			}
+		}
+	}
+	close(paths)
+}
+
+func (mask Mask) buildPaths(paths chan Mask,
+	seen map[Mask]bool, row, col int, path Mask) {
 
 	visit := func(row, col int) {
 		if mask.Contains(row, col) {
-			mask.Remove(row, col)
-			stack.push(row, col)
+			mask.buildPaths(paths, seen, row, col, path)
 		}
 	}
 
-	visit(row, col)
-
-	for stack.size > 0 {
-		row, col = stack.pop()
-		partition.Add(row, col)
-
-		visit(row-1, col)
-		visit(row+1, col)
-		visit(row, col-1)
-		visit(row, col+1)
+	mask.Remove(row, col)
+	path.Add(row, col)
+	if !seen[path] {
+		seen[path] = true
+		paths <- path
 	}
-	return
+
+	visit(row-1, col)
+	visit(row+1, col)
+	visit(row, col-1)
+	visit(row, col+1)
 }
 
 func (mask Mask) String() string {
@@ -110,22 +139,4 @@ func (mask Mask) String() string {
 		}
 	}
 	return board.String()
-}
-
-// Internal data structure for buildPartition().
-
-type stack struct {
-	data [NumDots]uint
-	size int
-}
-
-func (s *stack) push(row, col int) {
-	s.data[s.size] = index(row, col)
-	s.size++
-}
-
-func (s *stack) pop() (row, col int) {
-	s.size--
-	r, c := unIndex(s.data[s.size])
-	return int(r), int(c)
 }
