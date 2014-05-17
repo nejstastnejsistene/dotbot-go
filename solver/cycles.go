@@ -99,6 +99,9 @@ const Square = Mask(3 | 3<<BoardSize)
 
 // Returns the first square in this mask. Returns 0 if there is none.
 func (mask Mask) findSquare(r0, c0, r1, c1 int) Mask {
+	if !InBounds(r0, c0) || !InBounds(r1, c1) {
+		panic("Out of bounds convex hull")
+	}
 	for r := r0; r < r1; r++ {
 		for c := c0; c < c1; c++ {
 			square := Square << index(r, c)
@@ -286,7 +289,7 @@ func computeCyclesOfSize(cycles chan Mask, rows, cols int) {
 
 	// Check if a cycle fits our criterea for a unique cycle with no squares.
 	isValidCycle := func(cycle Mask) bool {
-		if cycle.findSquare(0, 0, rows, cols) != 0 {
+		if cycle.findSquare(0, 0, rows-1, cols-1) != 0 {
 			return false
 		}
 		// Keep track of the number of dots it should have.
