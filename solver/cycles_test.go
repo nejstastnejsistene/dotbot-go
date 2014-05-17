@@ -1,39 +1,89 @@
 package solver
 
-import (
-	"fmt"
-	"testing"
-)
+import "testing"
 
 func TestCycles(t *testing.T) {
-	mask := Mask(0)
-	mask.Add(0, 0)
-	mask.Add(1, 0)
-	mask.Add(2, 0)
-	mask.Add(0, 1)
-	mask.Add(2, 1)
-	mask.Add(0, 2)
-	mask.Add(1, 2)
-	mask.Add(2, 2)
+	var mask Mask
+	var cycles chan Mask
 
-	mask.Add(3, 2)
-	mask.Add(4, 2)
-	mask.Add(2, 3)
-	mask.Add(2, 4)
-	mask.Add(3, 4)
-	mask.Add(4, 4)
-	mask.Add(4, 3)
-
-	mask.Add(3, 5)
-	mask.Add(4, 5)
-
-	fmt.Println(mask)
-
-	cycles := make(chan Mask)
+	mask = maskFromString(`
+	X X X
+	X   X
+	X   X   X X
+	X   X     X
+	X   X X X X`)
+	cycles = make(chan Mask)
 	go mask.Cycles(cycles, mask)
 	for cycle := range cycles {
-		fmt.Println("Cycle:")
-		fmt.Println(cycle)
+		t.Errorf("Mask:\n%v", mask)
+		t.Errorf("Unexpected cycle:\n%v", cycle)
+	}
+
+	mask = maskFromString(`
+	X   X   X
+	  X   X   X
+	X   X   X  
+	X   X   X
+	  X   X   X
+	  X   X   X`)
+	cycles = make(chan Mask)
+	go mask.Cycles(cycles, mask)
+	for cycle := range cycles {
+		t.Errorf("Mask:\n%v", mask)
+		t.Errorf("Unexpected cycle:\n%v", cycle)
+	}
+
+	mask = maskFromString(`
+	X X X X X X
+	X   X   X
+	X X   X X X
+	X   X     X
+	X X X     X
+	X   X X X`)
+	cycles = make(chan Mask)
+	go mask.Cycles(cycles, mask)
+	for cycle := range cycles {
+		t.Errorf("Mask:\n%v", mask)
+		t.Errorf("Unexpected cycle:\n%v", cycle)
+	}
+
+	return
+
+	cycles = make(chan Mask)
+	go AllDots.Cycles(cycles, AllDots)
+	count := 0
+	for _ = range cycles {
+		count++
+	}
+	if count != 1 {
+		t.Error("There should only be one unique cycle to AllDots")
+	}
+
+	mask = maskFromString(`
+	X X X
+	X   X
+	X X X X X
+	    X   X X
+	    X X X X`)
+
+	expectedCycles := make(map[Mask]bool)
+
+	cycle1 := maskFromString(`
+	X X X
+	X   X
+	X X X`)
+	cycle2 := cycle1 << index(2, 2)
+	expectedCycles[cycle1] = true
+	expectedCycles[cycle2] = true
+	expectedCycles[cycle1|cycle2] = true
+	expectedCycles[Square<<index(3, 4)] = true
+
+	cycles = make(chan Mask)
+	go mask.Cycles(cycles, mask)
+	for cycle := range cycles {
+		if expected, ok := expectedCycles[cycle]; !expected || !ok {
+			t.Fatal("Actual and expected cycles don't match")
+		}
 	}
 }
 
@@ -117,6 +167,7 @@ func TestEncircled(t *testing.T) {
 	encircled.Add(2, 4)
 	encircled.Add(3, 2)
 	assert()
+
 }
 
 // TODO: Think of a way to test the completeness of the generated cycles.

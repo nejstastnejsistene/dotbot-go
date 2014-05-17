@@ -1,7 +1,6 @@
 package solver
 
 import (
-	"fmt"
 	"math/rand"
 	"testing"
 )
@@ -97,16 +96,63 @@ func TestPartition(t *testing.T) {
 }
 
 func TestDFS(t *testing.T) {
-	fmt.Println("DFS")
-	mask := Mask(0)
-	mask.Add(5, 2)
-	mask.Add(5, 3)
-	mask.Add(5, 4)
-	mask.Add(4, 3)
-	fmt.Println(mask)
+	mask := maskFromString(`
+	X X X
+	  X`)
+	// Manually create the expected sub paths.
+	expectedPaths := make(map[Mask]bool)
+	// X . .
+	//   .
+	a := Mask(0)
+	a.Add(0, 0)
+	expectedPaths[a] = true
+	// X X .
+	//   .
+	a.Add(0, 1)
+	expectedPaths[a] = true
+	b := a
+	// X X .
+	//   X
+	b.Add(1, 1)
+	expectedPaths[b] = true
+	// X X X
+	//   .
+	a.Add(0, 2)
+	expectedPaths[a] = true
+	// . . .
+	//   X
+	a = 0
+	a.Add(1, 1)
+	expectedPaths[a] = true
+	// . X .
+	//   X
+	a.Add(0, 1)
+	expectedPaths[a] = true
+	// . X X
+	//   X
+	a.Add(0, 2)
+	expectedPaths[a] = true
+	// . . X
+	//   .
+	a = 0
+	a.Add(0, 2)
+	expectedPaths[a] = true
+	// . X X
+	//   .
+	a.Add(0, 1)
+	expectedPaths[a] = true
+	// . X .
+	//   .
+	a = 0
+	a.Add(0, 1)
+	expectedPaths[a] = true
+
+	// Run the actual DFS and make sure it is what we expected.
 	paths := make(chan Mask)
 	go mask.DFS(paths)
 	for path := range paths {
-		fmt.Println(path)
+		if expected, ok := expectedPaths[path]; !expected || !ok {
+			t.Fatal("Actual and expected paths for DFS don't match")
+		}
 	}
 }

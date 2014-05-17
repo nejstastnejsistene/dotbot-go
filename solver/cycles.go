@@ -1,5 +1,7 @@
 package solver
 
+import "fmt"
+
 // A database of all possible non-square cycles. The slice of
 // cycles at db[rows][cols] is the list of all cycles of size
 // rows x cols that doesn't contain a square. The logic behind
@@ -48,10 +50,17 @@ func (mask Mask) Cycles(cycles chan Mask, colorMask Mask) {
 
 	seen := make(map[Mask]bool)
 
-	findPattern := func(pattern Mask) {
+	findPattern := func(pattern Mask, rows, cols int) {
 		// Translate this pattern throughout the convex hull.
-		for r := r0; r < r1; r++ {
-			for c := c0; c < c1; c++ {
+		// As for the limits, imagine that the hull is the
+		// entire board, so r0 is 0 and r1 is 5. If rows is,
+		// for example, 4, we should check for the pattern
+		// starting at row 0, 1, and 2. 5 - 4 + 1 gives us
+		// the limit we need. Less than that and we can get
+		// false negatives, greater than that and we get false
+		// positives because the pattern will wrap around.
+		for r := r0; r <= r1-rows+1; r++ {
+			for c := c0; c <= c1-cols+1; c++ {
 				cycle := pattern << index(r, c)
 				if mask.Matches(cycle) {
 					// Calculate the resulting board.
@@ -60,6 +69,7 @@ func (mask Mask) Cycles(cycles chan Mask, colorMask Mask) {
 					if !seen[result] {
 						seen[result] = true
 						cycles <- cycle
+						fmt.Println(r, c)
 					}
 				}
 			}
@@ -80,9 +90,10 @@ func (mask Mask) Cycles(cycles chan Mask, colorMask Mask) {
 			// X X X X X    neighbors rather than the typical two
 			//     X   X    brings the actual number of dots to 15.
 			//     X X X
+			//
 			if numDots >= perimeter(rows, cols)-1 {
 				for _, cycle := range db[rows][cols] {
-					findPattern(cycle)
+					findPattern(cycle, rows, cols)
 				}
 			}
 		}
