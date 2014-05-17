@@ -105,7 +105,7 @@ func (mask Mask) DFS(paths chan Mask) {
 	seen := make(map[Mask]bool)
 	for row := 0; row < BoardSize; row++ {
 		for col := 0; col < BoardSize; col++ {
-			if mask.Contains(row, col) && mask.CountNeighbors(row, col) == 1 {
+			if mask.Contains(row, col) && mask.CountNeighbors(row, col) < 2 {
 				mask.buildPaths(paths, seen, row, col, Mask(0))
 			}
 		}

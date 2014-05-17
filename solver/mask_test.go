@@ -96,7 +96,24 @@ func TestPartition(t *testing.T) {
 }
 
 func TestDFS(t *testing.T) {
-	mask := maskFromString(`
+	var mask Mask
+	var paths chan Mask
+
+	mask = 1
+	paths = make(chan Mask)
+	go mask.DFS(paths)
+	count := 0
+	for path := range paths {
+		if path != mask {
+			t.Error("Expecting singleton mask's DFS to yield itself")
+		}
+		count++
+	}
+	if count != 1 {
+		t.Errorf("Expecting one path for partition of size one")
+	}
+
+	mask = maskFromString(`
 	X X X
 	  X`)
 	// Manually create the expected sub paths.
@@ -148,7 +165,7 @@ func TestDFS(t *testing.T) {
 	expectedPaths[a] = true
 
 	// Run the actual DFS and make sure it is what we expected.
-	paths := make(chan Mask)
+	paths = make(chan Mask)
 	go mask.DFS(paths)
 	for path := range paths {
 		if expected, ok := expectedPaths[path]; !expected || !ok {

@@ -17,11 +17,11 @@ func TestRandomColor(t *testing.T) {
 	}
 }
 
-func TestFillEmptyWithRandomExcluding(t *testing.T) {
+func TestFillEmptyExcluding(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		for _, color := range Colors {
 			board := new(Board)
-			board.FillEmptyWithRandomExcluding(color)
+			board.FillEmptyExcluding(color)
 			for row := 0; row < BoardSize; row++ {
 				for col := 0; col < BoardSize; col++ {
 					switch board.Color(row, col) {
@@ -72,8 +72,12 @@ func TestShrink(t *testing.T) {
 func TestColorMask(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		board := RandomBoard()
+		count := 0
+		allColors := Mask(0)
 		for _, color := range Colors {
 			mask := board.ColorMask(color)
+			count += mask.Count()
+			allColors |= mask
 			for row := 0; row < BoardSize; row++ {
 				for col := 0; col < BoardSize; col++ {
 					boardTrue := board.Color(row, col) == color
@@ -83,6 +87,9 @@ func TestColorMask(t *testing.T) {
 					}
 				}
 			}
+		}
+		if allColors != AllDots || count != NumDots {
+			t.Fatal("The color masks don't add up to AllDots!")
 		}
 	}
 }

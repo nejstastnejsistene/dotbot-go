@@ -1,7 +1,5 @@
 package solver
 
-import "fmt"
-
 // A database of all possible non-square cycles. The slice of
 // cycles at db[rows][cols] is the list of all cycles of size
 // rows x cols that doesn't contain a square. The logic behind
@@ -69,7 +67,6 @@ func (mask Mask) Cycles(cycles chan Mask, colorMask Mask) {
 					if !seen[result] {
 						seen[result] = true
 						cycles <- cycle
-						fmt.Println(r, c)
 					}
 				}
 			}

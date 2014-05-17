@@ -51,7 +51,7 @@ func (c Color) String() string {
 
 func RandomBoard() Board {
 	var board Board
-	board.FillEmptyWithRandom()
+	board.FillEmpty()
 	return board
 }
 
@@ -59,11 +59,11 @@ func RandomColor() Color {
 	return Colors[rand.Intn(len(Colors))]
 }
 
-func (board *Board) FillEmptyWithRandom() {
-	board.FillEmptyWithRandomExcluding(Empty)
+func (board *Board) FillEmpty() {
+	board.FillEmptyExcluding(Empty)
 }
 
-func (board *Board) FillEmptyWithRandomExcluding(exclude Color) {
+func (board *Board) FillEmptyExcluding(exclude Color) {
 	for row := 0; row < BoardSize; row++ {
 		for col := 0; col < BoardSize; col++ {
 			if board.Color(row, col) == Empty {
