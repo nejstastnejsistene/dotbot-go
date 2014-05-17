@@ -41,6 +41,82 @@ func TestFindSquare(t *testing.T) {
 }
 
 func TestEncircled(t *testing.T) {
+	var mask, encircled Mask
+	assert := func() {
+		if mask.Encircled() != encircled {
+			t.Errorf("Mask:\n%v", mask)
+			t.Errorf("Expected encircled:\n%v", encircled)
+			t.Errorf("Actual encircled:\n%v", mask.Encircled())
+			t.Errorf("%#+v\n", mask)
+		}
+	}
+
+	mask = maskFromString(`
+	X X X
+	X   X
+	X   X`)
+	encircled = 0
+	assert()
+
+	mask = maskFromString(`
+	X   X
+	X   X
+	X X X
+	`)
+	encircled = 0
+	assert()
+
+	mask = maskFromString(`
+	X X X
+	X    
+	X X X
+	`)
+	encircled = 0
+	assert()
+
+	mask = maskFromString(`
+	X X X
+	    X
+	X X X
+	`)
+	encircled = 0
+	assert()
+
+	mask = maskFromString(`
+	X X X
+	X   X
+	X X X`)
+	encircled = 0
+	encircled.Add(1, 1)
+	assert()
+
+	mask = maskFromString(`
+	X X X X X X
+	X     X   X
+	X X   X X X
+	  X X X X
+	    X   X
+	    X X X`)
+	encircled = 0
+	encircled.Add(1, 1)
+	encircled.Add(1, 2)
+	encircled.Add(2, 2)
+	encircled.Add(1, 4)
+	encircled.Add(4, 3)
+	assert()
+
+	mask = maskFromString(`
+	X X X X X
+	X   X   X X
+	X X X X   X
+	  X   X X X
+	  X X X`)
+	encircled = 0
+	encircled.Add(1, 1)
+	encircled.Add(1, 3)
+	encircled.Add(2, 4)
+	encircled.Add(3, 2)
+	assert()
 }
 
 // TODO: Think of a way to test the completeness of the generated cycles.

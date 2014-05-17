@@ -1,5 +1,11 @@
 package solver
 
+import (
+	"fmt"
+	"regexp"
+	"strings"
+)
+
 type Mask uint64
 
 const NumDots = BoardSize * BoardSize
@@ -127,6 +133,47 @@ func (mask Mask) buildPaths(paths chan Mask,
 	visit(row+1, col)
 	visit(row, col-1)
 	visit(row, col+1)
+}
+
+// Function for creating a mask from a string, for testing.
+// Highly panicky. Can handle leading whitespace, as long as
+// its identical for all lines starting with the first line
+// with content. Every second character can be an X to indicate
+// that it is set. Everything else should be a space. Example:
+//
+//	s := `
+//	X X X
+//	X   X X
+//	X X X X X
+//	    X   X
+//	    X X X`
+//
+func maskFromString(s string) (mask Mask) {
+	// Skip leading empty lines.
+	lines := strings.Split(s, "\n")
+	for len(lines) > 0 && lines[0] == "" {
+		lines = lines[1:]
+	}
+	if len(lines) == 0 {
+		panic("no lines")
+	}
+	// Find leading whitespace for the first line.
+	// We'll assume all lines have it.
+	p := regexp.MustCompile(`^[\s]*`)
+	n := len(p.Find([]byte(lines[0])))
+	for row, line := range lines {
+		for col, char := range line[n:] {
+			switch {
+			case !InBounds(row, col/2):
+				panic("out of bounds")
+			case col%2 == 0 && char == 'X':
+				mask.Add(row, col/2)
+			case char != ' ':
+				panic(fmt.Sprintf("unexpected character: %#+v", string(char)))
+			}
+		}
+	}
+	return
 }
 
 func (mask Mask) String() string {
