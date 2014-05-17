@@ -36,3 +36,51 @@ func TestCycles(t *testing.T) {
 		fmt.Println(cycle)
 	}
 }
+
+func TestFindSquare(t *testing.T) {
+}
+
+func TestEncircled(t *testing.T) {
+}
+
+// TODO: Think of a way to test the completeness of the generated cycles.
+func TestDB(t *testing.T) {
+	for rows := 0; rows < len(db); rows++ {
+		for cols := 0; cols < len(db[rows]); cols++ {
+			for _, cycle := range db[rows][cols] {
+
+				// Make sure there are the expected number of dots.
+				diff := perimeter(rows, cols) - cycle.Count()
+				if !(diff == 0 || diff == 1) {
+					t.Errorf("Incorrect number of dots.")
+				}
+
+				// Make sure an appropriate number of dots are encircled.
+				n := cycle.Encircled().Count()
+				switch {
+				case n == 0:
+					t.Errorf("encircled == %d\n%v", n, cycle)
+				case rows == 3 && cols == 3:
+					if n != 1 {
+						t.Errorf("encircled != %d\n%v", n, cycle)
+					}
+				default:
+					lowerLimit := 2
+					if rows == 6 || cols == 6 {
+						lowerLimit = 3
+					}
+					upperLimit := (rows - 2) * (cols - 2)
+					if !(lowerLimit <= n && n <= upperLimit) {
+						msgFmt := "!(%d <= encircled <= %d)\n%v"
+						t.Errorf(msgFmt, lowerLimit, upperLimit, cycle)
+					}
+				}
+
+				// Make sure there are no squares!
+				if cycle.findSquare(0, 0, rows-1, cols-1) != 0 {
+					t.Error("There shouldn't be any squares here.")
+				}
+			}
+		}
+	}
+}

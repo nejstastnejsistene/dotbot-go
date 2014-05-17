@@ -156,7 +156,7 @@ func (mask Mask) ConvexHull() (r0, c0, r1, c1 int) {
 // undefined/meaningless return values.
 func (mask Mask) Encircled() Mask {
 
-	// This works by filling in the dots from each of the four directions,
+	// This works by filling in the dots two opposite directions,
 	// outwards-in. Any dots left unfilled are encircled. This approach
 	// would not work for board larger that 6x6 because it would become
 	// possible to create concave cyclic paths.
@@ -168,15 +168,7 @@ func (mask Mask) Encircled() Mask {
 			mask.Add(r, c)
 		}
 	}
-	for c := 0; c < BoardSize; c++ {
-		for r := 0; r < BoardSize && !mask.Contains(r, c); r++ {
-			mask.Add(r, c)
-		}
-		for r := BoardSize - 1; r >= 0 && !mask.Contains(r, c); r-- {
-			mask.Add(r, c)
-		}
-	}
-	return ^mask
+	return ^mask & AllDots
 }
 
 func init() {
