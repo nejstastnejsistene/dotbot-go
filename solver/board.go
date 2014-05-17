@@ -44,9 +44,9 @@ func (c Color) String() string {
 		return "Blue"
 	case Purple:
 		return "Purple"
-	default:
-		panic(fmt.Sprintf("Unknown color: %d", c))
 	}
+	panic(fmt.Sprintf("Unknown color: %d", c))
+	return ""
 }
 
 func RandomBoard() Board {
