@@ -4,7 +4,9 @@ import (
 	"encoding/binary"
 	"errors"
 	"image"
+	"image/color"
 	"os"
+	"os/exec"
 	"syscall"
 )
 
@@ -16,7 +18,41 @@ const (
 
 var NotImplemented = errors.New("not implemented: RGB_888 and RGB_565")
 
-func Mmap(filename string) (ScreenCap, error) {
+type ScreenCap struct {
+	data []byte
+	img  image.Image
+}
+
+func (img *ScreenCap) ColorModel() color.Model {
+	return img.img.ColorModel()
+}
+
+func (img *ScreenCap) Bounds() image.Rectangle {
+	return img.img.Bounds()
+}
+
+func (img *ScreenCap) At(x, y int) color.Color {
+	return img.img.At(x, y)
+}
+
+func (img *ScreenCap) Close() error {
+	return syscall.Munmap(img.data)
+}
+
+func NewScreenCap() (*ScreenCap, error) {
+	filename := "/data/local/DotBot/tmp.screencap"
+	err := TakeScreenCap(filename)
+	if err != nil {
+		return nil, err
+	}
+	return Mmap(filename)
+}
+
+func TakeScreenCap(filename string) error {
+	return exec.Command("screencap", filename).Run()
+}
+
+func Mmap(filename string) (*ScreenCap, error) {
 	f, err := os.Open(filename)
 	defer f.Close()
 	if err != nil {
@@ -32,16 +68,19 @@ func Mmap(filename string) (ScreenCap, error) {
 	format := int(buf[2])
 	switch format {
 	case rgba8888:
-		data, err := syscall.Mmap(int(f.Fd()), 0, 4*width*height,
+		bpp := 4
+		size := width * height * bpp
+		offset := 12
+		data, err := syscall.Mmap(int(f.Fd()), 0, size+offset,
 			syscall.PROT_READ, syscall.MAP_PRIVATE)
 		if err != nil {
 			return nil, err
 		}
-		return screencap{
+		return &ScreenCap{
 			data,
 			&image.RGBA{
-				data[12:],
-				4 * width,
+				data[offset:],
+				width * bpp,
 				image.Rect(0, 0, width, height),
 			},
 		}, err
