@@ -37,9 +37,9 @@ func Mmap(filename string) (ScreenCap, error) {
 		if err != nil {
 			return nil, err
 		}
-		return RGBA_8888{
+		return screencap{
 			data,
-			image.RGBA{
+			&image.RGBA{
 				data[12:],
 				4 * width,
 				image.Rect(0, 0, width, height),

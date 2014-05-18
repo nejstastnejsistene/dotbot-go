@@ -1,7 +1,6 @@
 package screencap
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"io"
@@ -13,24 +12,23 @@ type ScreenCap interface {
 	io.Closer
 }
 
-type RGBA_8888 struct {
+type screencap struct {
 	data []byte
-	image.RGBA
+	img  image.Image
 }
 
-func (img RGBA_8888) ColorModel() color.Model {
-	return img.RGBA.ColorModel()
+func (img screencap) ColorModel() color.Model {
+	return img.img.ColorModel()
 }
 
-func (img RGBA_8888) Bounds() image.Rectangle {
-	return img.RGBA.Bounds()
+func (img screencap) Bounds() image.Rectangle {
+	return img.img.Bounds()
 }
 
-func (img RGBA_8888) At(x, y int) color.Color {
-	return img.RGBA.At(x, y)
+func (img screencap) At(x, y int) color.Color {
+	return img.img.At(x, y)
 }
 
-func (img RGBA_8888) Close() error {
-	fmt.Println("Closing!")
+func (img screencap) Close() error {
 	return syscall.Munmap(img.data)
 }
