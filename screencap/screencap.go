@@ -2,7 +2,6 @@ package screencap
 
 import (
 	"encoding/binary"
-	"errors"
 	"image"
 	"image/color"
 	"os"
@@ -16,11 +15,9 @@ const (
 	rgb565   = 4
 )
 
-var NotImplemented = errors.New("not implemented: RGB_888 and RGB_565")
-
 type ScreenCap struct {
-	data []byte
-	img  image.Image
+	mapBase []byte
+	img     image.Image
 }
 
 func (img *ScreenCap) ColorModel() color.Model {
@@ -36,7 +33,7 @@ func (img *ScreenCap) At(x, y int) color.Color {
 }
 
 func (img *ScreenCap) Close() error {
-	return syscall.Munmap(img.data)
+	return syscall.Munmap(img.mapBase)
 }
 
 func NewScreenCap() (*ScreenCap, error) {
@@ -49,7 +46,7 @@ func NewScreenCap() (*ScreenCap, error) {
 }
 
 func TakeScreenCap(filename string) error {
-	return exec.Command("screencap", filename).Run()
+	return exec.Command("/system/bin/screencap", filename).Run()
 }
 
 func Mmap(filename string) (*ScreenCap, error) {
@@ -66,27 +63,37 @@ func Mmap(filename string) (*ScreenCap, error) {
 	width := int(buf[0])
 	height := int(buf[1])
 	format := int(buf[2])
+
+	var bytesPerPixel int
 	switch format {
 	case rgba8888:
-		bpp := 4
-		size := width * height * bpp
-		offset := 12
-		data, err := syscall.Mmap(int(f.Fd()), 0, size+offset,
-			syscall.PROT_READ, syscall.MAP_PRIVATE)
-		if err != nil {
-			return nil, err
-		}
-		return &ScreenCap{
-			data,
-			&image.RGBA{
-				data[offset:],
-				width * bpp,
-				image.Rect(0, 0, width, height),
-			},
-		}, err
+		bytesPerPixel = 4
+	case rgb888:
+		bytesPerPixel = 3
+	case rgb565:
+		bytesPerPixel = 2
+	default:
+		return nil, image.ErrFormat
+	}
+
+	size := width * height * bytesPerPixel
+	offset := 12
+	mapBase, err := syscall.Mmap(int(f.Fd()), 0, size+offset,
+		syscall.PROT_READ, syscall.MAP_PRIVATE)
+	if err != nil {
+		return nil, err
+	}
+
+	var img image.Image
+	pix := mapBase[offset:]
+	stride := width * bytesPerPixel
+	rect := image.Rect(0, 0, width, height)
+	switch format {
+	case rgba8888:
+		img = &image.RGBA{pix, stride, rect}
 	case rgb888:
 	case rgb565:
-		return nil, NotImplemented
+		img = &RGB{bytesPerPixel, pix, stride, rect}
 	}
-	return nil, image.ErrFormat
+	return &ScreenCap{mapBase, img}, err
 }
