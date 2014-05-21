@@ -8,7 +8,7 @@ const (
 )
 
 type Move struct {
-	path   Mask
+	Path   Mask
 	Color  Color
 	Cyclic bool
 }
@@ -19,13 +19,18 @@ type weightedMove struct {
 	move   Move
 }
 
+// Execute a move against the board.
 func (board *Board) MakeMove(move Move) (score int) {
-	dots := move.path
+	// Mark the dots in the path, and the dots that they
+	// encircle to be shrunk.
+	dots := move.Path
 	if move.Cyclic {
 		dots |= dots.Encircled()
 	}
 	for row := 0; row < BoardSize; row++ {
 		for col := 0; col < BoardSize; col++ {
+			// Shrink the marked dots, and also any dots of the same
+			// color if it's a cycle.
 			if dots.Contains(row, col) ||
 				(move.Cyclic && board.Color(row, col) == move.Color) {
 				board.Shrink(row, col)
@@ -40,7 +45,7 @@ func (board Board) ChooseMove(movesRemaining int) Move {
 	moves := make(chan Move)
 	go board.Moves(moves)
 	maxDepth := movesRemaining
-	if maxDepth > MaxDepth {
+	if maxDepth <= 0 || maxDepth > MaxDepth {
 		maxDepth = MaxDepth
 	}
 	return board.chooseMove(moves, 0, 1, maxDepth).move
@@ -48,20 +53,24 @@ func (board Board) ChooseMove(movesRemaining int) Move {
 
 func (board Board) chooseMove(moves chan Move, numEmpty, depth, maxDepth int) (chosen weightedMove) {
 	for move := range moves {
-		if depth > 1 && move.path.Count() == 1 {
+		// Don't consider shrinkers after the first round. There
+		// are too many possibilities and they are generally not
+		// particularly high scoring, so they waste a lot of time.
+		if depth > 1 && move.Path.Count() == 1 {
 			continue
 		}
-		//
+		// Apply the move to a copy of the board.
 		newBoard := board
 		score := newBoard.MakeMove(move)
-		//
+		// Initialize the weight to the score of the move.
 		weight := float64(score)
 		deepest := depth
-		//
+		// Give weight to cycles to account for the decreased
+		// entropy in the dots that will be filled in.
 		if move.Cyclic {
 			weight *= CycleWeight
 		}
-		//
+		// If the bounds haven't been reached, recur.
 		if numEmpty < Cutoff && depth < maxDepth {
 			newMoves := make(chan Move)
 			go newBoard.Moves(newMoves)
@@ -69,9 +78,14 @@ func (board Board) chooseMove(moves chan Move, numEmpty, depth, maxDepth int) (c
 			weight += Decay * result.weight
 			deepest = result.depth
 		}
+		// At the first level, how deep it had to look to reach
+		// the cutoff factors into the weight. As an extreme example,
+		// using 36 shrinkers over 36 turns is a lot less valuable
+		// than scoring 36 in a single turn.
 		if depth == 1 {
 			weight /= float64(deepest)
 		}
+		// Update the maximally weighted move.
 		if weight > chosen.weight {
 			chosen = weightedMove{weight, deepest, move}
 		}
