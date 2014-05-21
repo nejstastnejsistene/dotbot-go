@@ -1,5 +1,10 @@
 package solver
 
+import (
+	"errors"
+	"fmt"
+)
+
 const (
 	MaxDepth    = 3
 	Cutoff      = NumDots / 2
@@ -120,4 +125,68 @@ func (board Board) Moves(moves chan Move) {
 		}
 	}
 	close(moves)
+}
+
+type Point struct{ Row, Col int }
+
+func (move Move) ConstructPath() (points []Point) {
+	for r := 0; r < BoardSize; r++ {
+		for c := 0; c < BoardSize; c++ {
+			if move.Path.Contains(r, c) {
+
+				points = make([]Point, 1)
+				points[0] = Point{r, c}
+
+				mask := move.Path
+				mask.Remove(r, c)
+
+				if mask == 0 {
+					return points
+				}
+				points, err := mask.constructPath(points)
+				if err == nil {
+					if move.Cyclic {
+						points = append(points, points[0])
+					}
+					return points
+				}
+			}
+		}
+	}
+	panic(fmt.Sprintf("solver: unable to construct path:\n%v", move.Path))
+}
+
+func (mask Mask) constructPath(points []Point) ([]Point, error) {
+	// Find an arbitrary neighbor to the previous dot.
+	prev := points[len(points)-1]
+	var row, col int
+	switch {
+	case mask.Contains(prev.Row-1, prev.Col):
+		row = prev.Row - 1
+		col = prev.Col
+	case mask.Contains(prev.Row+1, prev.Col):
+		row = prev.Row + 1
+		col = prev.Col
+	case mask.Contains(prev.Row, prev.Col-1):
+		row = prev.Row
+		col = prev.Col - 1
+	case mask.Contains(prev.Row, prev.Col+1):
+		row = prev.Row
+		col = prev.Col + 1
+	default:
+		// There are no remaining neighbors; try another start point.
+		return nil, errors.New("solver: unable to construct path")
+	}
+	// Remove and append the dot.
+	mask.Remove(row, col)
+	points = append(points, Point{row, col})
+	// Recur if there are any dots left.
+	if mask != 0 {
+		var err error
+		points, err = mask.constructPath(points)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return points, nil
 }
