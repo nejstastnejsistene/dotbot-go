@@ -15,39 +15,31 @@ const (
 	NumPoints  int           = 10                    // How many points are interpolated for gestures.
 )
 
-type TouchScreenType string
-
-const (
-	SingleTouch TouchScreenType = "SingleTouch"
-	MultiTouch                  = "MultiTouch"
-)
-
 type TouchScreen struct {
-	device *os.File
-	tsType TouchScreenType
-	size   image.Rectangle
-	vSize  image.Rectangle
+	Device *os.File
+	Size   image.Rectangle
+	*TouchScreenInfo
 }
 
-func New(devnode string, size image.Rectangle) (v *TouchScreen, err error) {
-	dev, err := os.OpenFile(devnode, os.O_WRONLY, 0666)
+func New(filename string, size image.Rectangle) (v *TouchScreen, err error) {
+	dev, err := os.OpenFile(filename, os.O_WRONLY, 0666)
 	if err != nil {
 		return
 	}
-	v = &TouchScreen{
-		dev,
-		MultiTouch,
-		size,
-		image.Rectangle{image.Point{0, 0}, image.Point{1343, 2239}},
+	info, err := DeviceInfo(filename)
+	if err != nil {
+		return
 	}
+	v = &TouchScreen{dev, size, info}
 	return
 }
 
 // Scale coordinates from pixels to the touchscreen.
 func (v TouchScreen) coord(p image.Point) image.Point {
+	vSize := v.VirtualSize
 	return image.Point{
-		v.vSize.Min.X + (p.X-v.size.Min.X)*v.vSize.Max.X/v.size.Max.X,
-		v.vSize.Min.Y + (p.Y-v.size.Min.Y)*v.vSize.Max.Y/v.size.Max.Y,
+		vSize.Min.X + (p.X-v.Size.Min.X)*vSize.Max.X/v.Size.Max.X,
+		vSize.Min.Y + (p.Y-v.Size.Min.Y)*vSize.Max.Y/v.Size.Max.Y,
 	}
 }
 
@@ -58,7 +50,7 @@ func (v TouchScreen) event(evType, code uint16, value int) {
 		Code:  code,
 		Value: int32(value),
 	}
-	err := binary.Write(v.device, binary.LittleEndian, event)
+	err := binary.Write(v.Device, binary.LittleEndian, event)
 	if err != nil {
 		panic(err)
 	}
@@ -75,7 +67,7 @@ func (v TouchScreen) sync() {
 // Set the position of the cursor.
 func (v TouchScreen) setPos(p image.Point) {
 	p = v.coord(p)
-	switch v.tsType {
+	switch v.Type {
 	case SingleTouch:
 		v.event(EV_ABS, ABS_X, p.X)
 		v.event(EV_ABS, ABS_Y, p.Y)
@@ -85,14 +77,14 @@ func (v TouchScreen) setPos(p image.Point) {
 		v.event(EV_ABS, ABS_MT_POSITION_Y, p.Y)
 		return
 	}
-	panic(fmt.Sprint("touchscreen: not implemented:", v.tsType))
+	panic(fmt.Sprint("touchscreen: not implemented:", v.Type))
 }
 
 var trackingId int = 0
 
 // Indicate that a touch event is beginning.
 func (v TouchScreen) fingerDown(p image.Point) {
-	switch v.tsType {
+	switch v.Type {
 	case SingleTouch:
 		v.setPos(p)
 		v.event(EV_KEY, BTN_TOUCH, 1)
@@ -105,12 +97,12 @@ func (v TouchScreen) fingerDown(p image.Point) {
 		trackingId++
 		return
 	}
-	panic(fmt.Sprint("touchscreen: not implemented:", v.tsType))
+	panic(fmt.Sprint("touchscreen: not implemented:", v.Type))
 }
 
 // Indicate that a touch event is finished.
 func (v TouchScreen) fingerUp() {
-	switch v.tsType {
+	switch v.Type {
 	case SingleTouch:
 		v.event(EV_KEY, BTN_TOUCH, 0)
 		v.sync()
@@ -120,7 +112,7 @@ func (v TouchScreen) fingerUp() {
 		v.sync()
 		return
 	}
-	panic(fmt.Sprint("touchscreen: not implemented:", v.tsType))
+	panic(fmt.Sprint("touchscreen: not implemented:", v.Type))
 }
 
 // Tap the screen.
