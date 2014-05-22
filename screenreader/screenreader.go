@@ -7,20 +7,34 @@ import (
 	"github.com/nejstastnejsistene/dotbot-go/solver"
 )
 
-type Grid struct {
+type GridInfo struct {
 	topLeft image.Point // The center of the top left dot.
 	dist    int         // The distance between centers of adjacent dots.
 }
 
+// Information about the grid is cached, because it should never
+// change unless you switch devices.
+var Grid *GridInfo
+
+// Convert (row, col) coordinates into (x, y) coordinates.
+func (grid *GridInfo) Coordinate(p solver.Point) image.Point {
+	return image.Point{
+		grid.topLeft.X + grid.dist*p.Col,
+		grid.topLeft.Y + grid.dist*p.Row,
+	}
+}
+
 func ReadScreen(img image.Image) (board solver.Board, err error) {
-	grid, err := FindGrid(img)
-	if err != nil {
-		return
+	if Grid == nil {
+		Grid, err = FindGrid(img)
+		if err != nil {
+			return
+		}
 	}
 	for c := 0; c < solver.BoardSize; c++ {
 		for r := 0; r < solver.BoardSize; r++ {
-			x := grid.topLeft.X + c*grid.dist
-			y := grid.topLeft.Y + r*grid.dist
+			x := Grid.topLeft.X + c*Grid.dist
+			y := Grid.topLeft.Y + r*Grid.dist
 			col := img.At(x, y)
 			if isBackground(col) {
 				err = errors.New("screenreader: expecting dot here")
@@ -32,7 +46,8 @@ func ReadScreen(img image.Image) (board solver.Board, err error) {
 	return
 }
 
-func FindGrid(img image.Image) (grid Grid, err error) {
+func FindGrid(img image.Image) (grid *GridInfo, err error) {
+	grid = new(GridInfo)
 	grid.topLeft, err = findTopLeft(img)
 	if err != nil {
 		return

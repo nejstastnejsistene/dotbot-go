@@ -11,7 +11,21 @@ import (
 )
 
 func main() {
+	// Open the touchscreen.
+	start := time.Now()
+	t, err := touchscreen.New("/dev/input/event0", nil)
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		if err := t.Device.Close(); err != nil {
+			fmt.Println(err)
+		}
+	}()
+	fmt.Println("touchscreen.New():", time.Since(start))
+
 	for {
+		// Take a screenshot.
 		func() {
 			start := time.Now()
 			img, err := screencap.NewScreenCap()
@@ -26,13 +40,12 @@ func main() {
 			}()
 			fmt.Println("screencap.NewScreenCap():", time.Since(start))
 
-			start = time.Now()
-			t, err := touchscreen.New("/dev/input/event0", img.Bounds())
-			if err != nil {
-				panic(err)
+			// Tell the touchscreen how large the screen is.
+			if t.PixelSize == nil {
+				t.SetPixelSize(img.Bounds())
 			}
-			fmt.Println("touchscreen.New():", time.Since(start))
 
+			// Read the screen.
 			start = time.Now()
 			board, err := screenreader.ReadScreen(img)
 			if err != nil {
@@ -43,36 +56,32 @@ func main() {
 
 			fmt.Println(board)
 
+			// Choose a move.
 			start = time.Now()
 			path := board.ChooseMove(-1).ConstructPath()
 			fmt.Println("board.ChooseMove():", time.Since(start))
 
+			// Play the move.
 			if len(path) == 1 {
-				r := path[0].Row
-				c := path[0].Col
+				p := screenreader.Grid.Coordinate(path[0])
 				start = time.Now()
-				err = t.Tap(image.Point{
-					215 + 154*c, 525 + 154*r,
-				})
+				err = t.Tap(p)
 				fmt.Println("touchscreen.Tap():", time.Since(start))
 				start = time.Now()
-				err = t.Tap(image.Point{
-					215 + 154*c, 525 + 154*r,
-				})
+				err = t.Tap(p)
 				fmt.Println("touchscreen.Tap():", time.Since(start))
 			} else {
 				start = time.Now()
 				points := make([]image.Point, len(path))
 				for i, p := range path {
-					r := p.Row
-					c := p.Col
-					points[i] = image.Point{215 + 154*c, 525 + 154*r}
+					points[i] = screenreader.Grid.Coordinate(p)
 				}
 				t.Gesture(points)
 				fmt.Println("touchscreen.Gesture():", time.Since(start))
 			}
 		}()
 
+		// Give time for new dots to fall in.
 		time.Sleep(750 * time.Millisecond)
 	}
 }

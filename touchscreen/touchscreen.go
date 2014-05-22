@@ -12,16 +12,16 @@ import (
 const (
 	ShortDelay time.Duration = 10 * time.Millisecond // A short delay between groups of touch events.
 	LongDelay                = 10 * ShortDelay       // A stylish delay before a gesture is ended.
-	NumPoints  int           = 10                    // How many points are interpolated for gestures.
+	NumPoints  int           = 5                     // How many points are interpolated for gestures.
 )
 
 type TouchScreen struct {
-	Device *os.File
-	Size   image.Rectangle
-	*TouchScreenInfo
+	Device           *os.File         // The device node to write to.
+	PixelSize        *image.Rectangle // The size in pixels of the display.
+	*TouchScreenInfo                  // Additional info about the display.
 }
 
-func New(filename string, size image.Rectangle) (v *TouchScreen, err error) {
+func New(filename string, size *image.Rectangle) (v *TouchScreen, err error) {
 	dev, err := os.OpenFile(filename, os.O_WRONLY, 0666)
 	if err != nil {
 		return
@@ -34,13 +34,8 @@ func New(filename string, size image.Rectangle) (v *TouchScreen, err error) {
 	return
 }
 
-// Scale coordinates from pixels to the touchscreen.
-func (v TouchScreen) coord(p image.Point) image.Point {
-	vSize := v.VirtualSize
-	return image.Point{
-		vSize.Min.X + (p.X-v.Size.Min.X)*vSize.Max.X/v.Size.Max.X,
-		vSize.Min.Y + (p.Y-v.Size.Min.Y)*vSize.Max.Y/v.Size.Max.Y,
-	}
+func (v *TouchScreen) SetPixelSize(size image.Rectangle) {
+	v.PixelSize = &size
 }
 
 // Write an input event to the device.
@@ -66,7 +61,6 @@ func (v TouchScreen) sync() {
 
 // Set the position of the cursor.
 func (v TouchScreen) setPos(p image.Point) {
-	p = v.coord(p)
 	switch v.Type {
 	case SingleTouch:
 		v.event(EV_ABS, ABS_X, p.X)
@@ -129,6 +123,12 @@ func (v TouchScreen) Gesture(ps []image.Point) (err error) {
 	if ps == nil || len(ps) == 0 {
 		return errors.New("touchscreen: expecting at least one point.")
 	}
+	if v.PixelSize == nil {
+		return errors.New("touchscreen: must call SetPixelSize() first")
+	}
+	for i, p := range ps {
+		ps[i] = v.coord(p)
+	}
 	func() {
 		// For ease of writing, the touch event code uses panics to indicate
 		// errors. We recover from that here, and return it as an error.
@@ -152,4 +152,15 @@ func (v TouchScreen) Gesture(ps []image.Point) (err error) {
 		v.fingerUp()
 	}()
 	return
+}
+
+// Scale coordinates from pixels to the touchscreen.
+// Size is the size of the screen in pixels.
+func (v TouchScreen) coord(p image.Point) image.Point {
+	size := v.PixelSize
+	vSize := v.VirtualSize
+	return image.Point{
+		vSize.Min.X + (p.X-size.Min.X)*vSize.Max.X/size.Max.X,
+		vSize.Min.Y + (p.Y-size.Min.Y)*vSize.Max.Y/size.Max.Y,
+	}
 }
