@@ -144,6 +144,7 @@ func (v TouchScreen) Gesture(ps []image.Point) (err error) {
 			// Interpolate points up to and including p.
 			for j := 1; j <= NumPoints; j++ {
 				v.setPos(prev.Add(p.Sub(prev).Mul(j).Div(NumPoints)))
+				v.sync()
 			}
 			prev = p
 		}
