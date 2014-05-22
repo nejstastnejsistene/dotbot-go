@@ -56,7 +56,8 @@ func (board Board) ChooseMove(movesRemaining int) Move {
 	return board.chooseMove(moves, 0, 1, maxDepth).move
 }
 
-func (board Board) chooseMove(moves chan Move, numEmpty, depth, maxDepth int) (chosen weightedMove) {
+func (board Board) chooseMove(moves chan Move, numEmpty, depth, maxDepth int) weightedMove {
+	chosen := weightedMove{0, depth, Move{}}
 	for move := range moves {
 		// Don't consider shrinkers after the first round. There
 		// are too many possibilities and they are generally not
@@ -96,7 +97,7 @@ func (board Board) chooseMove(moves chan Move, numEmpty, depth, maxDepth int) (c
 			chosen = weightedMove{weight, deepest, move}
 		}
 	}
-	return
+	return chosen
 }
 
 func (board Board) Moves(moves chan Move) {
