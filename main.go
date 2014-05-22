@@ -45,7 +45,7 @@ func main() {
 
 			start = time.Now()
 			path := board.ChooseMove(-1).ConstructPath()
-			fmt.Println("screenreader.ReadScreen():", time.Since(start))
+			fmt.Println("board.ChooseMove():", time.Since(start))
 
 			if len(path) == 1 {
 				r := path[0].Row

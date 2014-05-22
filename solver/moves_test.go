@@ -11,6 +11,27 @@ func TestChooseMove(t *testing.T) {
 func TestMoves(t *testing.T) {
 }
 
+// This hugely purple board triggered a bug where
+// I wasn't properly calculating the number of empty dots,
+// and then the cutoff wasn't working right so the huge
+// purple area wasn't being weighted correctly. This test
+// makes sure ChooseMove() selects one of the many obvious
+// purple cycles available.
+func TestPurpleMoves(t *testing.T) {
+	board := Board{
+		{6, 5, 3, 6, 6, 6},
+		{6, 6, 5, 3, 5, 6},
+		{6, 5, 4, 6, 6, 6},
+		{6, 6, 5, 6, 6, 6},
+		{6, 6, 6, 6, 6, 6},
+		{5, 4, 5, 6, 6, 6},
+	}
+	move := board.ChooseMove(-1)
+	if !(move.Cyclic && move.Color == Purple) {
+		t.Fatalf("missed obvious cycles here:\n%v", board)
+	}
+}
+
 func TestPathOnCycles(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -51,7 +72,7 @@ func TestPathOnRandomBoards(t *testing.T) {
 				t.Fatalf("path does not connect to itself")
 			}
 		} else if len(path) != move.Path.Count() {
-			t.Fatalf("length of path should be the number of dots\n%v", move.Path)
+			t.Fatalf("length of path should be the number of dots:\n%v", move.Path)
 		}
 	}
 }

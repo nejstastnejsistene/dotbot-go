@@ -67,6 +67,7 @@ func (board Board) chooseMove(moves chan Move, numEmpty, depth, maxDepth int) (c
 		// Apply the move to a copy of the board.
 		newBoard := board
 		score := newBoard.MakeMove(move)
+		numEmpty := numEmpty + score
 		// Initialize the weight to the score of the move.
 		weight := float64(score)
 		deepest := depth
@@ -79,7 +80,7 @@ func (board Board) chooseMove(moves chan Move, numEmpty, depth, maxDepth int) (c
 		if numEmpty < Cutoff && depth < maxDepth {
 			newMoves := make(chan Move)
 			go newBoard.Moves(newMoves)
-			result := newBoard.chooseMove(newMoves, numEmpty+score, depth+1, maxDepth)
+			result := newBoard.chooseMove(newMoves, numEmpty, depth+1, maxDepth)
 			weight += Decay * result.weight
 			deepest = result.depth
 		}
