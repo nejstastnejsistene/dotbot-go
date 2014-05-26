@@ -1,5 +1,6 @@
 package solver
 
+import "fmt"
 import "testing"
 
 func TestCycles(t *testing.T) {
@@ -12,6 +13,7 @@ func TestCycles(t *testing.T) {
 	X   X   X X
 	X   X     X
 	X   X X X X`)
+	fmt.Printf("0x%x\n", uint64(mask))
 	cycles = make(chan Mask)
 	go mask.Cycles(cycles, mask)
 	for cycle := range cycles {
@@ -26,6 +28,7 @@ func TestCycles(t *testing.T) {
 	X   X   X
 	  X   X   X
 	  X   X   X`)
+	fmt.Printf("0x%x\n", uint64(mask))
 	cycles = make(chan Mask)
 	go mask.Cycles(cycles, mask)
 	for cycle := range cycles {
@@ -40,14 +43,13 @@ func TestCycles(t *testing.T) {
 	X   X     X
 	X X X     X
 	X   X X X`)
+	fmt.Printf("0x%x\n", uint64(mask))
 	cycles = make(chan Mask)
 	go mask.Cycles(cycles, mask)
 	for cycle := range cycles {
 		t.Errorf("Mask:\n%v", mask)
 		t.Errorf("Unexpected cycle:\n%v", cycle)
 	}
-
-	return
 
 	cycles = make(chan Mask)
 	go AllDots.Cycles(cycles, AllDots)
@@ -66,6 +68,7 @@ func TestCycles(t *testing.T) {
 	    X   X X
 	    X X X X`)
 
+	fmt.Printf("0x%x\n", uint64(mask))
 	expectedCycles := make(map[Mask]bool)
 
 	cycle1 := maskFromString(`
@@ -77,6 +80,7 @@ func TestCycles(t *testing.T) {
 	expectedCycles[cycle2] = true
 	expectedCycles[cycle1|cycle2] = true
 	expectedCycles[Square<<index(3, 4)] = true
+	fmt.Printf("0x%x\n0x%x\n", uint64(cycle1), uint64(cycle2))
 
 	cycles = make(chan Mask)
 	go mask.Cycles(cycles, mask)

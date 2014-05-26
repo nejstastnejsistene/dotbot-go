@@ -1,6 +1,10 @@
 CC = gcc
+CFLAGS = -Wall
 
-mask_test: mask_test.c board.o cycles.o mask.o moves.o queue.o
+cycles_test: cycles_test.c cycles.o mask.o queue.o
+	$(CC) -o $@ $^
+
+mask_test: mask_test.c mask.o queue.o
 	$(CC) -o $@ $^
 
 clean:

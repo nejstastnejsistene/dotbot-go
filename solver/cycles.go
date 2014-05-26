@@ -96,10 +96,12 @@ func (mask Mask) Cycles(cycles chan Mask, colorMask Mask) {
 		}
 	}
 
-	// If there is a square, yield the first one found.
-	square := mask.findSquare(r0, c0, r1, c1)
-	if square != 0 {
-		cycles <- square
+	if !seen[colorMask] {
+		// If there is a square, yield the first one found.
+		square := mask.findSquare(r0, c0, r1, c1)
+		if square != 0 {
+			cycles <- square
+		}
 	}
 }
 
@@ -113,7 +115,7 @@ func (mask Mask) findSquare(r0, c0, r1, c1 int) Mask {
 	for r := r0; r < r1; r++ {
 		for c := c0; c < c1; c++ {
 			square := Square << index(r, c)
-			if mask.Matches(Square << index(r, c)) {
+			if mask.Matches(square) {
 				return square
 			}
 		}
@@ -185,7 +187,7 @@ func (mask Mask) Encircled() Mask {
 		for r := 0; r < BoardSize && !v.Contains(r, c); r++ {
 			v.Add(r, c)
 		}
-		for r := BoardSize - 1; r >= 0 && !mask.Contains(r, c); r-- {
+		for r := BoardSize - 1; r >= 0 && !v.Contains(r, c); r-- {
 			v.Add(r, c)
 		}
 	}

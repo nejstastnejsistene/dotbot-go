@@ -1,6 +1,135 @@
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "cycles.h"
 
+void Cycles(Mask mask, Mask colorMask, Queue *cycles) {
+    if (!MATCHES(colorMask, mask)) {
+        fprintf(stderr, "mask is not contained within colorMask\n");
+        exit(1);
+    }
+    int numDots = Count(mask);
+    if (numDots < 4) {
+        return;
+    }
+    int r0, c0, r1, c1;
+    ConvexHull(mask, &r0, &c0, &r1, &c1);
+    int numRows = r1 - r0 + 1;
+    int numCols = c1 - c0 + 1;
+    if (numRows < 2 || numCols < 2) {
+        return;
+    }
+
+    Queue *seen = NewQueue();
+
+    Mask cycle, result;
+    int rows, cols, i, r, c, j, notSeen;
+	for (rows = 3; rows <= numRows; rows++) {
+		for (cols = 3; cols <= numCols; cols++) {
+			if (numDots >= PERIMETER(rows, cols)-1) {
+                for (i = 0; i < db[rows][cols]->size; i--) {
+                    for (r = r0; r <= r1-rows+1; r++) {
+                        for (c = c0; c <= c1-cols+1; c++) {
+                            cycle = (Mask)db[rows][cols]->values[i] << INDEX(r, c);
+                            if (MATCHES(mask, cycle)) {
+                                result = colorMask | Encircled(cycle);
+                                notSeen = 1;
+                                for (j = 0; j < seen->size; j++) {
+                                    if ((Mask)seen->values[j] == result) {
+                                        notSeen = 0;
+                                        break;
+                                    }
+                                }
+                                if (notSeen) {
+                                    Push(seen, (void*)result);
+                                    Push(cycles, (void*)cycle);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    FreeQueue(seen);
+
+    Mask square = findSquare(mask, r0, c0, r1, c1);
+    if (square != 0) {
+        Push(cycles, (void*)square);
+    }
+}
+
 Mask findSquare(Mask mask, int r0, int c0, int r1, int c1) {
+    if (!INBOUNDS(r0, c0) || !INBOUNDS(r1, c1)) {
+        fprintf(stderr, "Out of bounds convex hull\n");
+        exit(1);
+    }
+    Mask square;
+    int r, c;
+    for (r = r0; r < r1; r++) {
+        for (c = c0; c < c1; c++) {
+            square = Square << INDEX(r, c);
+            if (MATCHES(mask, square)) {
+                return square;
+            }
+        }
+    }
+    return 0;
+}
+
+void ConvexHull(Mask mask, int *r0, int *c0, int *r1, int *c1) {
+    if (mask == 0) {
+        *r0 = *c0 = *r1 = *c1 = 0;
+        return;
+    }
+    *r0 = BoardSize;
+    *c0 = BoardSize;
+    *r1 = 0;
+    *c1 = 0;
+    int row, col;
+    for (row = 0; row < BoardSize; row++) {
+        for (col = 0; col < BoardSize; col++) {
+            if (CONTAINS(mask, row, col)) {
+                if (row < *r0) {
+                    *r0 = row;
+                }
+                if (row > *r1) {
+                    *r1 = row;
+                }
+                if (col < *c0) {
+                    *c0 = col;
+                }
+                if (col > *c1) {
+                    *c1 = col;
+                }
+            }
+        }
+    }
+    return;
+}
+
+Mask Encircled(Mask mask) {
+    Mask h, v;
+    int r, c;
+    h = v = mask;
+	for (r = 0; r < BoardSize; r++) {
+		for (c = 0; c < BoardSize && !CONTAINS(h, r, c); c++) {
+			h = ADD(h, r, c);
+		}
+		for (c = BoardSize - 1; c >= 0 && !CONTAINS(h, r, c); c--) {
+            h = ADD(h, r, c);
+		}
+	}
+	for (c = 0; c < BoardSize; c++) {
+		for (r = 0; r < BoardSize && !CONTAINS(v, r, c); r++) {
+            v = ADD(v, r, c);
+		}
+		for (r = BoardSize - 1; r >= 0 && !CONTAINS(v, r, c); r--) {
+			v = ADD(v, r, c);
+		}
+	}
+	return ~(h | v) & AllDots;
 }
 
 void buildCandidateCycles(Queue *cycles, Mask cycle, int col, int prevStart, int prevEnd, int rows, int cols) {
