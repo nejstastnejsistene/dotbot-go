@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "mask.h"
+#include "test.h"
 
 Mask RandMask() {
     Mask mask = 0;
@@ -186,7 +187,7 @@ int TestDFS() {
     return 0;
 }
 
-int main() {
+int TestAllMask() {
     int failed = 0;
     if (TestInBounds() < 0) {
         fprintf(stderr, "TestInBounds: FAILED\n");

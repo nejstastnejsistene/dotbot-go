@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "cycles.h"
+#include "test.h"
 
 int TestCycles() {
     Mask mask;
@@ -68,8 +69,7 @@ int TestCycles() {
     return 0;
 }
 
-int main() {
-    init();
+int TestAllCycles() {
     int failed = 0;
     if (TestCycles() < 0) {
         fprintf(stderr, "TestCycles: FAILED\n");

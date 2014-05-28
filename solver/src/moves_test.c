@@ -4,6 +4,7 @@
 #include "cycles.h"
 #include "mask.h"
 #include "moves.h"
+#include "test.h"
 
 int TestPathOnRandomBoards() {
     int i;
@@ -31,7 +32,7 @@ int TestPathOnRandomBoards() {
     return 0;
 }
 
-int main() {
+int TestAllMoves() {
     init();
     int failed = 0;
     if (TestPathOnRandomBoards() < 0) {

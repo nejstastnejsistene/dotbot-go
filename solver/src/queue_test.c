@@ -1,5 +1,5 @@
 #include "test.h"
 
-int TestAllBoard() {
+int TestAllQueue() {
     return 0;
 }
