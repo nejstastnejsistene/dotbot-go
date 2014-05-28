@@ -105,24 +105,14 @@ func (board Board) ColorMask(color Color) Mask {
 	return mask
 }
 
-func (board Board) Copy() (copy Board) {
-	for row := 0; row < BoardSize; row++ {
-		for col := 0; col < BoardSize; col++ {
-			copy.SetColor(row, col, board.Color(row, col))
-		}
-	}
-	return
-}
-
 const dotFmt = " \x1b[%dm\u25cf\x1b[0m"
 
 var colorCodes = map[Color]int{
-	NotEmpty: 0,
-	Red:      31,
-	Yellow:   33,
-	Green:    32,
-	Blue:     36,
-	Purple:   35,
+	Red:    31,
+	Yellow: 33,
+	Green:  32,
+	Blue:   36,
+	Purple: 35,
 }
 
 func (board Board) String() (s string) {

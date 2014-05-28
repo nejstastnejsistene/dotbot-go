@@ -2,6 +2,7 @@
 #define BOARD_H
 
 #define BoardSize 6
+#define NumColors 5
 
 typedef enum {
 	Empty,

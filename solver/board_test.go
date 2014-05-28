@@ -52,7 +52,7 @@ func TestSetColor(t *testing.T) {
 func TestShrink(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		board := RandomBoard()
-		copy := board.Copy()
+		copy := board
 
 		row := rand.Intn(BoardSize)
 		col := rand.Intn(BoardSize)
@@ -90,20 +90,6 @@ func TestColorMask(t *testing.T) {
 		}
 		if allColors != AllDots || count != NumDots {
 			t.Fatal("The color masks don't add up to AllDots!")
-		}
-	}
-}
-
-func TestCopy(t *testing.T) {
-	for i := 0; i < 1000; i++ {
-		board := RandomBoard()
-		copy := board.Copy()
-		for row := 0; row < BoardSize; row++ {
-			for col := 0; col < BoardSize; col++ {
-				if board.Color(row, col) != copy.Color(row, col) {
-					t.Fatal("Copy doesn't match original board")
-				}
-			}
 		}
 	}
 }
