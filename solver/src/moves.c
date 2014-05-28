@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "board.h"
@@ -73,9 +75,9 @@ void chooseMove(Board board, Queue *moves, int numEmpty, int depth, int maxDepth
 }
 
 void Moves(Board board, Queue *moves) {
-    Queue *partitions, *cycles;
+    Queue *partitions, *cycles, *paths;
     Color color;
-    int i, j;
+    int i, j, k;
     for (color = Red; color <= Purple; color++) {
         Mask colorMask = ColorMask(board, color);
         partitions = NewQueue();
@@ -84,12 +86,82 @@ void Moves(Board board, Queue *moves) {
             Mask partition = (Mask)partitions->values[i];
             cycles = NewQueue();
             Cycles(partition, colorMask, cycles);
-            for (j = 0; j < cycles->size; j++) {
-                Mask cycle = (Mask)cycles->values[j];
-                Push(moves, (void*)ENCODE_MOVE(cycle, color, 1));
+            if (cycles->size) {
+                for (j = 0; j < cycles->size; j++) {
+                    Mask cycle = (Mask)cycles->values[j];
+                    Push(moves, (void*)ENCODE_MOVE(cycle, color, 1));
+                }
+            } else {
+                paths = NewQueue();
+                DFS(partition, paths);
+                for (k = 0; k < paths->size; k++) {
+                    Push(moves, paths->values[k]);
+                }
+                FreeQueue(paths);
             }
             FreeQueue(cycles);
         }
         FreeQueue(partitions);
     }
+}
+
+Queue *ConstructPath(Move move) {
+    int row, col;
+    for (row = 0; row < BoardSize; row++) {
+        for (col = 0; col < BoardSize; col++) {
+            if (CONTAINS(PATH(move), row, col)) {
+
+                Queue *points = NewQueue();
+                long long point = INDEX(row, col);
+                Push(points, (void*)point);
+
+                Mask mask = REMOVE(PATH(move), row, col);
+				if (mask == 0) {
+					return points;
+				}
+                // Success is indicated by a zero return value.
+                if (constructPath(mask, points, point) == 0) {
+                    if (CYCLIC(move)) {
+                        Push(points, (void*)points->values[0]);
+                    }
+                    return points;
+                } else {
+                    FreeQueue(points);
+                }
+            }
+        }
+    }
+    fprintf(stderr, "solver: unable to construct path:\n");
+    PrintMask(PATH(move));
+    exit(1);
+}
+
+int constructPath(Mask mask, Queue *points, int prev) {
+    int prevRow, prevCol, row, col;
+    UNINDEX(prev, prevRow, prevCol);
+    if        (CONTAINS(mask, prevRow-1, prevCol)) {
+        row = prevRow - 1;
+        col = prevCol;
+    } else if (CONTAINS(mask, prevRow+1, prevCol)) {
+        row = prevRow + 1;
+        col = prevCol;
+    } else if (CONTAINS(mask, prevRow, prevCol-1)) {
+        row = prevRow;
+        col = prevCol - 1;
+    } else if (CONTAINS(mask, prevRow, prevCol+1)) {
+        row = prevRow;
+        col = prevCol + 1;
+    } else {
+        return -1;
+	}
+    mask = REMOVE(mask, row, col);
+    long long point = INDEX(row, col);
+    Push(points, (void*)point);
+	if (mask != 0) {
+		int err = constructPath(mask, points, point);
+        if (err != 0) {
+            return err;
+		}
+	}
+    return 0;
 }

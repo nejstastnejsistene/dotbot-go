@@ -30,5 +30,7 @@ int MakeMove(Board board, Move move);
 Move ChooseMove(Board board, int movesRemaining);
 void chooseMove(Board board, Queue *moves, int numEmpty, int depth, int maxDepth, weightedMove *chosen);
 void Moves(Board board, Queue *moves);
+Queue *ConstructPath(Move move);
+int constructPath(Mask mask, Queue *points, int prev);
 
 #endif
