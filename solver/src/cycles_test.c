@@ -34,7 +34,7 @@ int TestCycles() {
 	Cycles(mask, mask, cycles);
     int seen[4] = {0};
     if (cycles->size != 4) {
-	    fprintf(stderr, "Actual and expected cycles don't match");
+	    fprintf(stderr, "Actual and expected cycles don't match: expected 4 cycles, not %d\n", cycles->size);
         return -1;
     }
     int index, i;
@@ -53,12 +53,12 @@ int TestCycles() {
             index = 3;
             break;
         default:
-            fprintf(stderr, "Actual and expected cycles don't match");
+            fprintf(stderr, "Actual and expected cycles don't match: unexpected cycle\n");
             return -1;
         }
     }
     if (seen[index]) {
-	    fprintf(stderr, "Actual and expected cycles don't match");
+	    fprintf(stderr, "Actual and expected cycles don't match: duplicate cycles\n");
         return -1;
     } else {
         seen[index] = 1;

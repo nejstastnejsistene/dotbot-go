@@ -33,7 +33,7 @@ void Push(Queue *q, void *value) {
             exit(1);
         }
     }
-    q->values[++q->size] = value;
+    q->values[q->size++] = value;
 }
 
 void *Pop(Queue *q) {
@@ -41,5 +41,5 @@ void *Pop(Queue *q) {
         fprintf(stderr, "queue: can't pop from empty queue\n");
         exit(1);
     }
-    return q->values[q->size--];
+    return q->values[--q->size];
 }

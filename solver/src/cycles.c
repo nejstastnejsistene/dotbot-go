@@ -27,7 +27,7 @@ void Cycles(Mask mask, Mask colorMask, Queue *cycles) {
 	for (rows = 3; rows <= numRows; rows++) {
 		for (cols = 3; cols <= numCols; cols++) {
 			if (numDots >= PERIMETER(rows, cols)-1) {
-                for (i = 0; i < db[rows][cols]->size; i--) {
+                for (i = 0; i < db[rows][cols]->size; i++) {
                     for (r = r0; r <= r1-rows+1; r++) {
                         for (c = c0; c <= c1-cols+1; c++) {
                             cycle = (Mask)db[rows][cols]->values[i] << INDEX(r, c);
@@ -199,8 +199,9 @@ void init() {
     int rows, cols;
     for (rows = 3; rows <= BoardSize; rows++) {
         for (cols = 3; cols <= BoardSize; cols++) {
-            candidates = NewQueue();
             db[rows][cols] = NewQueue();
+            candidates = NewQueue();
+            buildCandidateCycles(candidates, 0, 0, -1, -1, rows, cols);
             while (candidates->size) {
                 cycle = (Mask)Pop(candidates);
                 if (isValidCycle(cycle, rows, cols)) {
