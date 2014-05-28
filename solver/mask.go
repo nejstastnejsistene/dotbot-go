@@ -105,8 +105,16 @@ func (mask Mask) DFS(paths chan Mask) {
 	seen := make(map[Mask]bool)
 	for row := 0; row < BoardSize; row++ {
 		for col := 0; col < BoardSize; col++ {
-			if mask.Contains(row, col) && mask.CountNeighbors(row, col) < 2 {
-				mask.buildPaths(paths, seen, row, col, Mask(0))
+			if mask.Contains(row, col) {
+				if mask.CountNeighbors(row, col) < 2 {
+					mask.buildPaths(paths, seen, row, col, Mask(0))
+				} else {
+					// Account for the singleton dot without doing
+					// redundant traversals.
+					path := DotMask(row, col)
+					paths <- path
+					seen[path] = true
+				}
 			}
 		}
 	}

@@ -167,9 +167,14 @@ func TestDFS(t *testing.T) {
 	// Run the actual DFS and make sure it is what we expected.
 	paths = make(chan Mask)
 	go mask.DFS(paths)
+	count = 0
 	for path := range paths {
 		if expected, ok := expectedPaths[path]; !expected || !ok {
 			t.Fatal("Actual and expected paths for DFS don't match")
 		}
+		count++
+	}
+	if count != len(expectedPaths) {
+		t.Fatal("Actual and expected paths for DFS don't match")
 	}
 }

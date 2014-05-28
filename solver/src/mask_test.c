@@ -128,6 +128,62 @@ int TestPartition() {
     return 0;
 }
 
+int TestDFS() {
+	Mask mask = 1;
+	Queue *paths = NewQueue();
+    DFS(mask, paths);
+    if (paths->size != 1) {
+		fprintf(stderr, "Expecting one path for partition of size one\n");
+        FreeQueue(paths);
+        return -1;
+    }
+    if ((Mask)paths->values[0] != mask) {
+        fprintf(stderr, "Expecting singleton mask's DFS to yield itself\n");
+        FreeQueue(paths);
+        return -1;
+    }
+    FreeQueue(paths);
+    mask = 0x10c1;
+    Queue *expected = NewQueue();
+    Push(expected, (void*)1);
+    Push(expected, (void*)(1 | (1 << BoardSize)));
+    Push(expected, (void*)(1 | (3 << BoardSize)));
+    Push(expected, (void*)(1 | (1 << BoardSize) | (1 << 2 * BoardSize)));
+    Push(expected, (void*)(2 << BoardSize));
+    Push(expected, (void*)(3 << BoardSize));
+    Push(expected, (void*)((3 << BoardSize) | (1 << 2 * BoardSize)));
+    Push(expected, (void*)(1 << 2 * BoardSize));
+    Push(expected, (void*)((1 << BoardSize) | (1 << 2 * BoardSize)));
+    Push(expected, (void*)(1 << BoardSize));
+    paths = NewQueue();
+    DFS(mask, paths);
+    if (paths->size != expected->size) {
+		fprintf(stderr, "Actual and expected paths for DFS don't match\n");
+        FreeQueue(expected);
+        FreeQueue(paths);
+        return -1;
+    }
+    int i, j;
+    for (i = 0; i < paths->size; i++) {
+        int found = 0;
+        for (j = 0; j < expected->size; j++) {
+            if (paths->values[i] == expected->values[j]) {
+                found = 1;
+                break;
+            }
+        }
+        if (!found) {
+            fprintf(stderr, "Actual and expected paths for DFS don't match\n");
+            FreeQueue(expected);
+            FreeQueue(paths);
+            return -1;
+        }
+    }
+    FreeQueue(expected);
+    FreeQueue(paths);
+    return 0;
+}
+
 int main() {
     int failed = 0;
     if (TestInBounds() < 0) {
@@ -148,6 +204,10 @@ int main() {
     }
     if (TestPartition() < 0) {
         fprintf(stderr, "TestPartition: FAILED\n");
+        failed = 1;
+    }
+    if (TestDFS() < 0) {
+        fprintf(stderr, "TestDFS: FAILED\n");
         failed = 1;
     }
     return failed;
