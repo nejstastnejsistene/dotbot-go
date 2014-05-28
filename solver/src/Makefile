@@ -1,15 +1,21 @@
 CC = gcc
-CFLAGS = -Wall
+CFLAGS = -Wall -O3
 
-test: cycles_test mask_test
+OBJS = board.o cycles.o mask.o queue.o
+
+test: board_test cycles_test mask_test
+	./board_test
 	./cycles_test
 	./mask_test
 
-cycles_test: cycles_test.c cycles.o mask.o queue.o
-	$(CC) -o $@ $^
+board_test: board_test.c $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
 
-mask_test: mask_test.c mask.o queue.o
-	$(CC) -o $@ $^
+cycles_test: cycles_test.c $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
+
+mask_test: mask_test.c $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
 
 clean:
 	rm *.o *_test

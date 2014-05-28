@@ -29,6 +29,19 @@ int CountNeighbors(Mask mask, int row, int col) {
     return count;
 }
 
+Mask ColorMask(Board board, Color color) {
+    Mask mask = 0;
+    int row, col;
+    for (row = 0; row < BoardSize; row++) {
+        for (col = 0; col < BoardSize; col++) {
+            if (board[col][row] == color) {
+                mask = ADD(mask, row, col);
+            }
+        }
+    }
+    return mask;
+}
+
 void Partition(Mask mask, Queue *q) {
     int row, col;
     for (row = 0; row < BoardSize; row++) {
@@ -106,16 +119,14 @@ void buildPaths(Mask mask, Queue *paths, int seen[NumDots][NumDots], int startIn
 }
 
 void PrintMask(Mask mask) {
+    Board board = {{0}};
     int row, col;
     for (row = 0; row < BoardSize; row++) {
         for (col = 0; col < BoardSize; col++) {
             if (CONTAINS(mask, row, col)) {
-                printf(" *");
-            } else {
-                printf("  ");
+                board[col][row] = NotEmpty;
             }
         }
-        printf("\n");
     }
-    printf("\n");
+    PrintBoard(board);
 }

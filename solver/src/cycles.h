@@ -8,10 +8,12 @@
 
 Queue *db[BoardSize+1][BoardSize+1];
 
+void Cycles(Mask mask, Mask colorMask, Queue *cycles);
 Mask findSquare(Mask mask, int r0, int c0, int r1, int c1);
 void ConvexHull(Mask mask, int *r0, int *c0, int *r1, int *c1);
 Mask Encircled(Mask mask);
 void buildCandidateCycles(Queue *cycles, Mask cycle, int col, int prevStart, int prevEnd, int rows, int cols);
 int isValidCycle(Mask mask, int rows, int cols);
+void init();
 
 #endif

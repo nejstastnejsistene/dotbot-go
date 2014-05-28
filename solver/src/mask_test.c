@@ -1,14 +1,15 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mask.h"
 
 Mask RandMask() {
-    Mask mask;
+    Mask mask = 0;
     int row, col;
     for (row = 0; row < BoardSize; row++) {
 		for (col = 0; col < BoardSize; col++) {
             if (rand() % 5 == 0) {
-                mask |= DOTMASK(row, col);
+                mask = ADD(mask, row, col);
             }
         }
     }
@@ -78,15 +79,16 @@ int TestAddRemove() {
 
 int TestCount() {
     Mask mask;
-    int row, col, count, i, j, n;
+    int row, col, count, i, n;
 	for (i = 0; i < 1000; i++) {
 		mask = 0;
 		count = 0;
-        int n;
+        n = 0;
         while (n < NumDots) {
             UNINDEX(n, row, col);
             mask = ADD(mask, row, col);
-            count += rand() % 3 + 1;
+            n += rand() % 3 + 1;
+            count++;
         }
 		if (Count(mask) != count) {
 			fprintf(stderr, "Count() is incorrect\n");

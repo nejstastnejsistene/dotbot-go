@@ -20,6 +20,7 @@ typedef long long unsigned int Mask;
 
 int Count(Mask mask);
 int CountNeighbors(Mask mask, int row, int col);
+Mask ColorMask(Board board, Color color);
 void Partition(Mask mask, Queue *q);
 Mask buildPartition(Mask *mask, Mask p, int row, int col);
 void DFS(Mask mask, Queue *paths);
