@@ -3,7 +3,7 @@
 
 #define QUEUE_INITIAL_CAPACITY 8
 
-typedef struct {
+typedef struct Queue {
     int size;
     int capacity;
     void **values;
