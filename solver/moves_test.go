@@ -60,7 +60,7 @@ func TestPathOnCycles(t *testing.T) {
 	for rows := 3; rows < BoardSize; rows++ {
 		for cols := 3; cols < BoardSize; cols++ {
 			for _, cycle := range db[rows][cols] {
-				move := Move{cycle, Red, true}
+				move := NewMove(cycle, Red, true)
 				path := move.ConstructPath()
 				if len(path) != move.Path.Count()+1 {
 					t.Fatalf("length of path should be numDots + 1:\n%v", cycle)

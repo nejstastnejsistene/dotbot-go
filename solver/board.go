@@ -1,23 +1,24 @@
 package solver
 
-import (
-	"fmt"
-	"math/rand"
-)
+// #cgo CFLAGS: -O3
+// #include "board.h"
+// #include "mask.h"
+import "C"
+import "fmt"
 
-const BoardSize = 6
+const BoardSize = C.BoardSize
 
-type Color int
-type Board [BoardSize][BoardSize]Color
+type Color C.Color
+type Board C.Board
 
 const (
-	Empty Color = iota
-	NotEmpty
-	Red
-	Yellow
-	Green
-	Blue
-	Purple
+	Empty    Color = C.Empty
+	NotEmpty       = C.NotEmpty
+	Red            = C.Red
+	Yellow         = C.Yellow
+	Green          = C.Green
+	Blue           = C.Blue
+	Purple         = C.Purple
 )
 
 var Colors = []Color{
@@ -49,14 +50,13 @@ func (c Color) String() string {
 	return ""
 }
 
-func RandomBoard() Board {
-	var board Board
-	board.FillEmpty()
-	return board
+func RandomBoard() (board Board) {
+	C.FillEmpty(&board[0])
+	return
 }
 
 func RandomColor() Color {
-	return Colors[rand.Intn(len(Colors))]
+	return Color(C.RandomColor())
 }
 
 func (board *Board) FillEmpty() {
@@ -64,55 +64,34 @@ func (board *Board) FillEmpty() {
 }
 
 func (board *Board) FillEmptyExcluding(exclude Color) {
-	for row := 0; row < BoardSize; row++ {
-		for col := 0; col < BoardSize; col++ {
-			if board.Color(row, col) == Empty {
-				color := RandomColor()
-				for color == exclude {
-					color = RandomColor()
-				}
-				board.SetColor(row, col, color)
-			}
-		}
-	}
+	C.FillEmptyExcluding(&board[0], C.Color(exclude))
 }
 
 func (board Board) Color(row, col int) Color {
-	return board[col][row]
+	return Color(board[col][row])
 }
 
 func (board *Board) SetColor(row, col int, color Color) {
-	board[col][row] = color
+	board[col][row] = C.Color(color)
 }
 
 func (board *Board) Shrink(row, col int) {
-	for row > 0 {
-		board.SetColor(row, col, board.Color(row-1, col))
-		row--
-	}
-	board.SetColor(0, col, Empty)
+	C.Shrink(&board[0], C.int(row), C.int(col))
 }
 
 func (board Board) ColorMask(color Color) Mask {
-	mask := Mask(0)
-	for row := 0; row < BoardSize; row++ {
-		for col := 0; col < BoardSize; col++ {
-			if board.Color(row, col) == color {
-				mask.Add(row, col)
-			}
-		}
-	}
-	return mask
+	return Mask(C.ColorMask(&board[0], C.Color(color)))
 }
 
 const dotFmt = " \x1b[%dm\u25cf\x1b[0m"
 
 var colorCodes = map[Color]int{
-	Red:    31,
-	Yellow: 33,
-	Green:  32,
-	Blue:   36,
-	Purple: 35,
+	NotEmpty: 0,
+	Red:      31,
+	Yellow:   33,
+	Green:    32,
+	Blue:     36,
+	Purple:   35,
 }
 
 func (board Board) String() (s string) {

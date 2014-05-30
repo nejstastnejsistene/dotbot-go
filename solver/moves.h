@@ -2,6 +2,7 @@
 #define MOVES_H
 
 #include "board.h"
+#include "mask.h"
 #include "queue.h"
 
 #define MaxDepth    3

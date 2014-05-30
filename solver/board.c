@@ -5,7 +5,7 @@
 #include "mask.h"
 
 Color RandomColor() {
-    return rand() % (Purple - Red) + Red;
+    return rand() % (Purple - Red + 1) + Red;
 }
 
 void FillEmpty(Board board) {
@@ -29,7 +29,7 @@ void FillEmptyExcluding(Board board, Color exclude) {
 
 void Shrink(Board board, int row, int col) {
     while (row > 0) {
-        board[col][row] = board[col][row];
+        board[col][row] = board[col][row-1];
         row--;
     }
     board[col][0] = Empty;

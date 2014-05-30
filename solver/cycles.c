@@ -21,6 +21,7 @@ void Cycles(Mask mask, Mask colorMask, Queue *cycles) {
     }
 
     Queue *seen = NewQueue();
+    int seenSquare = 0;
 
     Mask cycle, result;
     int rows, cols, i, r, c, j, notSeen;
@@ -33,6 +34,9 @@ void Cycles(Mask mask, Mask colorMask, Queue *cycles) {
                             cycle = (Mask)db[rows][cols]->values[i] << INDEX(r, c);
                             if (MATCHES(mask, cycle)) {
                                 result = colorMask | Encircled(cycle);
+                                if (result == colorMask) {
+                                    seenSquare = 1;
+                                }
                                 notSeen = 1;
                                 for (j = 0; j < seen->size; j++) {
                                     if ((Mask)seen->values[j] == result) {
@@ -54,9 +58,11 @@ void Cycles(Mask mask, Mask colorMask, Queue *cycles) {
 
     FreeQueue(seen);
 
-    Mask square = findSquare(mask, r0, c0, r1, c1);
-    if (square != 0) {
-        Push(cycles, (void*)square);
+    if (!seenSquare) {
+        Mask square = findSquare(mask, r0, c0, r1, c1);
+        if (square != 0) {
+            Push(cycles, (void*)square);
+        }
     }
 }
 

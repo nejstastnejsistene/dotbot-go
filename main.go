@@ -1,15 +1,16 @@
 package main
 
-import (
-	"fmt"
-	"image"
-	"time"
+import "fmt"
+import "github.com/nejstastnejsistene/dotbot-go/solver"
 
-	"github.com/nejstastnejsistene/dotbot-go/screencap"
-	"github.com/nejstastnejsistene/dotbot-go/screenreader"
-	"github.com/nejstastnejsistene/dotbot-go/touchscreen"
-)
+func main() {
+	board := solver.RandomBoard()
+	fmt.Println(board)
+	move := board.ChooseMove(-1)
+	fmt.Println(move.Path)
+}
 
+/*
 func main() {
 	// Open the touchscreen.
 	start := time.Now()
@@ -85,3 +86,4 @@ func main() {
 		time.Sleep(750 * time.Millisecond)
 	}
 }
+*/

@@ -63,7 +63,8 @@ func TestShrink(t *testing.T) {
 		}
 		for r := row; r > 0; r-- {
 			if board.Color(r, col) != copy.Color(r-1, col) {
-				t.Fatal("Dot should have fallen")
+				t.Errorf("Shrink(%v, %v)", row, col)
+				t.Fatalf("Dot should have fallen:\n%v\n%v", copy, board)
 			}
 		}
 	}
