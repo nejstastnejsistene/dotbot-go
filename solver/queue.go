@@ -1,5 +1,6 @@
 package solver
 
+// #cgo CFLAGS: -O3
 // #include "queue.h"
 import "C"
 import (
