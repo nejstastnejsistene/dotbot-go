@@ -16,12 +16,12 @@ const (
 )
 
 type TouchScreen struct {
-	Device           *os.File         // The device node to write to.
-	PixelSize        *image.Rectangle // The size in pixels of the display.
-	*TouchScreenInfo                  // Additional info about the display.
+	Device           *os.File        // The device node to write to.
+	PixelSize        image.Rectangle // The size in pixels of the display.
+	*TouchScreenInfo                 // Additional info about the display.
 }
 
-func New(filename string, size *image.Rectangle) (v *TouchScreen, err error) {
+func New(filename string, size image.Rectangle) (v *TouchScreen, err error) {
 	dev, err := os.OpenFile(filename, os.O_WRONLY, 0666)
 	if err != nil {
 		return
@@ -32,10 +32,6 @@ func New(filename string, size *image.Rectangle) (v *TouchScreen, err error) {
 	}
 	v = &TouchScreen{dev, size, info}
 	return
-}
-
-func (v *TouchScreen) SetPixelSize(size image.Rectangle) {
-	v.PixelSize = &size
 }
 
 // Write an input event to the device.
@@ -95,7 +91,7 @@ func (v TouchScreen) fingerDown(p image.Point) {
 }
 
 // Indicate that a touch event is finished.
-func (v TouchScreen) fingerUp() {
+func (v TouchScreen) FingerUp() {
 	switch v.Type {
 	case SingleTouch:
 		v.event(EV_KEY, BTN_TOUCH, 0)
@@ -123,9 +119,6 @@ func (v TouchScreen) Gesture(ps []image.Point) (err error) {
 	if ps == nil || len(ps) == 0 {
 		return errors.New("touchscreen: expecting at least one point.")
 	}
-	if v.PixelSize == nil {
-		return errors.New("touchscreen: must call SetPixelSize() first")
-	}
 	for i, p := range ps {
 		ps[i] = v.coord(p)
 	}
@@ -149,7 +142,7 @@ func (v TouchScreen) Gesture(ps []image.Point) (err error) {
 			prev = p
 		}
 		time.Sleep(LongDelay)
-		v.fingerUp()
+		v.FingerUp()
 	}()
 	return
 }
