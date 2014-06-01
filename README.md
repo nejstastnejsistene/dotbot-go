@@ -10,7 +10,7 @@ This is DotBot ported to Go. It was for fun, to teach myself Go, to explore cont
 First make sure Dots is open to Infinite mode, then run the following commands. Tested on a 2013 Nexus 7 with the dark color scheme.
 
 ```sh
-GOARCH=arm GOARM=7 go build
+./build.sh
 adb push dotbot-go /data/local
 adb shell /data/local/dotbot-go
 ```
