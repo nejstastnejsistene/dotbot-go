@@ -50,7 +50,10 @@ func TestCycles(t *testing.T) {
 	cycles = make(chan Mask)
 	go AllDots.Cycles(cycles, AllDots)
 	count := 0
-	for _ = range cycles {
+	for cycle := range cycles {
+		if cycle != Square {
+			t.Fatal("should favor smaller cycles if they are equivalent")
+		}
 		count++
 	}
 	if count != 1 {
