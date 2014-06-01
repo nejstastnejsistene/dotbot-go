@@ -11,7 +11,7 @@ Queue *NewQueue() {
     }
     q->size = 0;
     q->capacity = QUEUE_INITIAL_CAPACITY;
-    q->values = malloc(sizeof(void*)*q->capacity);
+    q->values = malloc(sizeof(Item)*q->capacity);
     if (q->values < 0) {
         perror("NewQueue");
         exit(1);
@@ -24,10 +24,10 @@ void FreeQueue(Queue *q) {
     free(q);
 }
 
-void Push(Queue *q, void *value) {
+void Push(Queue *q, Item value) {
     if (q->size == q->capacity) {
         q->capacity *= 2;
-        q->values = realloc(q->values, sizeof(void*)*q->capacity);
+        q->values = realloc(q->values, sizeof(Item)*q->capacity);
         if (q->values < 0) {
             perror("Push");
             exit(1);
@@ -36,7 +36,7 @@ void Push(Queue *q, void *value) {
     q->values[q->size++] = value;
 }
 
-void *Pop(Queue *q) {
+Item Pop(Queue *q) {
     if (q->size == 0) {
         fprintf(stderr, "queue: can't pop from empty queue\n");
         exit(1);

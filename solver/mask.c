@@ -47,7 +47,7 @@ void Partition(Mask mask, Queue *q) {
     for (row = 0; row < BoardSize; row++) {
         for (col = 0; col < BoardSize; col++) {
             if (CONTAINS(mask, row, col)) {
-                Push(q, (void*)buildPartition(&mask, 0, row, col));
+                Push(q, buildPartition(&mask, 0, row, col));
             }
         }
     }
@@ -85,7 +85,7 @@ void DFS(Mask mask, Queue *paths) {
                 if (CountNeighbors(mask, row, col) < 2) {
                     buildPaths(mask, paths, seen, start, row, col, 0);
                 } else {
-                    Push(paths, (void*)DOTMASK(row, col));
+                    Push(paths, DOTMASK(row, col));
                     seen[start][start] = 1;
                 }
             }
@@ -101,7 +101,7 @@ void buildPaths(Mask mask, Queue *paths, int seen[NumDots][NumDots], int startIn
 	if (!seen[startIndex][currentIndex]) {
 		seen[startIndex][currentIndex] = 1;
 		seen[currentIndex][startIndex] = 1;
-        Push(paths, (void*)path);
+        Push(paths, path);
 	}
 
     if (CONTAINS(mask, row-1, col)) {

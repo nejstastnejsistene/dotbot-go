@@ -89,7 +89,7 @@ void Moves(Board board, Queue *moves) {
             if (cycles->size) {
                 for (j = 0; j < cycles->size; j++) {
                     Mask cycle = (Mask)cycles->values[j];
-                    Push(moves, (void*)ENCODE_MOVE(cycle, color, 1));
+                    Push(moves, ENCODE_MOVE(cycle, color, 1));
                 }
             } else {
                 paths = NewQueue();
@@ -112,8 +112,8 @@ Queue *ConstructPath(Move move) {
             if (CONTAINS(PATH(move), row, col)) {
 
                 Queue *points = NewQueue();
-                long long point = INDEX(row, col);
-                Push(points, (void*)point);
+                Item point = INDEX(row, col);
+                Push(points, point);
 
                 Mask mask = REMOVE(PATH(move), row, col);
 				if (mask == 0) {
@@ -122,7 +122,7 @@ Queue *ConstructPath(Move move) {
                 // Success is indicated by a zero return value.
                 if (constructPath(mask, points, point) == 0) {
                     if (CYCLIC(move)) {
-                        Push(points, (void*)points->values[0]);
+                        Push(points, points->values[0]);
                     }
                     return points;
                 } else {
@@ -156,7 +156,7 @@ int constructPath(Mask mask, Queue *points, int prev) {
 	}
     mask = REMOVE(mask, row, col);
     long long point = INDEX(row, col);
-    Push(points, (void*)point);
+    Push(points, point);
 	if (mask != 0) {
 		int err = constructPath(mask, points, point);
         if (err != 0) {

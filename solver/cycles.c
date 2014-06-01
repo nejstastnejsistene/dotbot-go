@@ -77,8 +77,8 @@ void Cycles(Mask mask, Mask colorMask, Queue *cycles) {
                                     }
                                 }
                                 if (notSeen) {
-                                    Push(seen, (void*)result);
-                                    Push(cycles, (void*)cycle);
+                                    Push(seen, result);
+                                    Push(cycles, cycle);
                                 }
                             }
                         }
@@ -95,7 +95,7 @@ void Cycles(Mask mask, Mask colorMask, Queue *cycles) {
     if (!seenSquare) {
         Mask square = findSquare(mask, r0, c0, r1, c1);
         if (square != 0) {
-            Push(cycles, (void*)square);
+            Push(cycles, square);
         }
     }
 }
@@ -261,7 +261,7 @@ void buildCandidateCycles(Queue *cycles, Mask cycle, int col, int prevStart, int
             // Yield the generated cycle if on the last column, otherwise
             // recur to the next column.
             if (col+1 == cols) {
-                Push(cycles, (void*)newCycle);
+                Push(cycles, newCycle);
             } else {
                 buildCandidateCycles(cycles, newCycle, col+1, start, end, rows, cols);
             }
@@ -313,12 +313,13 @@ void init() {
             candidates = NewQueue();
             buildCandidateCycles(candidates, 0, 0, -1, -1, rows, cols);
             while (candidates->size) {
-                cycle = (Mask)Pop(candidates);
+                cycle = Pop(candidates);
                 // Filter out the invalid candidates.
                 if (isValidCycle(cycle, rows, cols)) {
-                    Push(db[rows][cols], (void*)cycle);
+                    Push(db[rows][cols], cycle);
                 }
             }
+            printf("%d %d %d\n", rows, cols, db[rows][cols]->size);
             FreeQueue(candidates);
         }
     }
