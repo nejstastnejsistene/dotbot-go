@@ -11,6 +11,15 @@ type Move struct {
 	Cyclic bool
 }
 
+func decodeMove(cMove C.Move) Move {
+	return Move{
+		cMove,
+		Mask(cMove) & AllDots,
+		Color(cMove >> C.COLOR_SHIFT),
+		((cMove >> C.CYCLIC_SHIFT) & 1) == 1,
+	}
+}
+
 func NewMove(path Mask, color Color, cyclic bool) Move {
 	mColor := Mask(color)
 	mCyclic := Mask(0)
@@ -23,14 +32,22 @@ func NewMove(path Mask, color Color, cyclic bool) Move {
 	return Move{cMove, path, color, cyclic}
 }
 
+func (board *Board) MakeMove(move Move) {
+	C.MakeMove(&board[0], move.cMove)
+}
+
 func (board Board) ChooseMove(turnsRemaining int) Move {
-	move := C.ChooseMove(&board[0], C.int(turnsRemaining))
-	return Move{
-		move,
-		Mask(move) & AllDots,
-		Color(move >> C.COLOR_SHIFT),
-		((move >> C.CYCLIC_SHIFT) & 1) == 1,
+	return decodeMove(C.ChooseMove(&board[0], C.int(turnsRemaining)))
+}
+
+func (board Board) Moves(moves chan Move) {
+	q := newQueue()
+	C.Moves(&board[0], (*C.Queue)(q))
+	defer q.free()
+	for _, move := range q.slice() {
+		moves <- decodeMove(C.Move(move))
 	}
+	close(moves)
 }
 
 type Point struct{ Row, Col int }

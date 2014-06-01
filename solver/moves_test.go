@@ -1,6 +1,9 @@
 package solver
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestMakeMove(t *testing.T) {
 }
@@ -9,6 +12,24 @@ func TestChooseMove(t *testing.T) {
 }
 
 func TestMoves(t *testing.T) {
+	for i := 0; i < 1000; i++ {
+		board := RandomBoard()
+		moves := make(chan Move)
+		go board.Moves(moves)
+		for move := range moves {
+			if move.Path == 0 {
+				t.Fatal("path should not be empty")
+			}
+			if move.Color == Empty || move.Color == NotEmpty {
+				t.Fatal("color should be a real color")
+			}
+			cycles := make(chan Mask)
+			go move.Path.Cycles(cycles, move.Path)
+			if _, ok := <-cycles; move.Cyclic != ok {
+				t.Fatal("move.Cyclic is incorrect")
+			}
+		}
+	}
 }
 
 // This hugely purple board triggered a bug where
@@ -48,6 +69,26 @@ func TestPurple2(t *testing.T) {
 	move := board.ChooseMove(-1)
 	if !(move.Cyclic && move.Color == Purple) {
 		t.Fatalf("missed obvious cycles here:\n%v", board)
+	}
+}
+
+// This test case caught a but in chooseMove which forgot to
+// initialize a struct with zero values.
+func TestYellow(t *testing.T) {
+	fmt.Println("TestFoo")
+	board := Board{
+		{3, 2, 4, 4, 4, 3},
+		{2, 3, 6, 4, 3, 3},
+		{5, 4, 3, 3, 6, 6},
+		{4, 2, 2, 3, 3, 3},
+		{3, 6, 4, 3, 6, 3},
+		{3, 6, 3, 4, 3, 3},
+	}
+	move := board.ChooseMove(-1)
+	board.MakeMove(move)
+	move = board.ChooseMove(-1)
+	if !(move.Cyclic && move.Color == Yellow) {
+		t.Fatal("missed available yellow cycles on 2nd turn")
 	}
 }
 

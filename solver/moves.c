@@ -57,7 +57,7 @@ void chooseMove(Board board, Queue *moves, int numEmpty, int depth, int maxDepth
 		if (numEmpty < Cutoff && depth < maxDepth) {
             Queue *newMoves = NewQueue();
             Moves(newBoard, newMoves);
-            weightedMove result;
+            weightedMove result = {0, 0, 0};
 			chooseMove(newBoard, newMoves, newNumEmpty, depth+1, maxDepth, &result);
             FreeQueue(newMoves);
 			weight += Decay * result.weight;
@@ -95,7 +95,7 @@ void Moves(Board board, Queue *moves) {
                 paths = NewQueue();
                 DFS(partition, paths);
                 for (k = 0; k < paths->size; k++) {
-                    Push(moves, paths->values[k]);
+                    Push(moves, (void*)ENCODE_MOVE((Mask)paths->values[k], color, 0));
                 }
                 FreeQueue(paths);
             }
