@@ -319,7 +319,6 @@ void init() {
                     Push(db[rows][cols], cycle);
                 }
             }
-            printf("%d %d %d\n", rows, cols, db[rows][cols]->size);
             FreeQueue(candidates);
         }
     }
